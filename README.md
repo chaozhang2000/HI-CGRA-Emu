@@ -6,7 +6,7 @@ Ubuntu22.04
 
 1. install dependency
 ```
-sudo apt-get install make cmake build-essential bison flex
+sudo apt-get install make build-essential bison flex libncurses-dev
 ```
 
 2. add EMU\_HOME to ~/.bashrc  
