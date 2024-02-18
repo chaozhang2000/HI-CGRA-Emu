@@ -48,7 +48,15 @@ struct BitStreamInfoPE{
 	int shiftconst2[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
 	CtrlRegs ctrlregs;
 };
+struct BitStreamCheck{
+	int InstMemSize;
+	int ConstMemSize;
+	int ShiftConstMemSize;
+};
 struct BitStreamInfo{
+	BitStreamCheck CheckInfo;
 	BitStreamInfoPE BitstreaminfoOfPE[16];
 };
+
+bool DumpBitStream(BitStreamInfo* bitstream);
 #endif

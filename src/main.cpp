@@ -1,5 +1,9 @@
-#include <stdio.h>
-#include "BitStream.h"
+#include"BitStream.h"
+
 int main(){
-	printf("hello\n");
+	BitStreamInfo* bitstream = new BitStreamInfo;
+	bool bitstreamNoErr = DumpBitStream(bitstream);
+	if(!bitstreamNoErr){delete bitstream;return 1;}
+
+	delete bitstream;
 }
