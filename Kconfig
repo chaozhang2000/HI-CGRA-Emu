@@ -53,3 +53,11 @@ config CGRA_SHIFTCONSTMEM_SIZE
 	int "Shift Const Mem size of each PE (uint:max number of shift const)"
 	default 8
 endmenu
+
+config CGRA_INFO
+	bool "Print CGRA information"
+	default y
+
+config BITSTREAM_DUMP
+	bool "Print the bitstrem input"
+	default y

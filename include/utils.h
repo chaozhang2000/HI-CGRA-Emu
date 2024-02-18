@@ -22,7 +22,7 @@
 #define ANSI_NONE       "\33[0m"
 
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
-
+#include <iostream>
 #define ERRS(coutfmt,color) std::cerr<<color<<coutfmt<<ANSI_NONE<<std::endl;
 #define OUTS(coutfmt,color) std::cout<<color<<coutfmt<<ANSI_NONE<<std::endl;
 

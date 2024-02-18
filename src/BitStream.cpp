@@ -37,12 +37,15 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
 				return false;
 		}
 
+#ifdef CONFIG_BITSTREAM_DUMP
     // Printing the bitstream
+  	OUTS("\nBitstream information",ANSI_FG_BLUE);
+		OUTS("==================================",ANSI_FG_CYAN); 
     for (int i = 0; i < 16; ++i) {
-				OUTS("BitStreamInfoPE " << i << ":",ANSI_FG_BLUE);
+				OUTS("BitStreamInfoPE " << i << ":",ANSI_FG_CYAN);
         // Printing CGRAInstruction bitstream
         for (int j = 0; j < CONFIG_CGRA_INSTMEM_SIZE; ++j) {
-            OUTS( "  CGRAInstruction " << j << ": ",ANSI_FG_CYAN);
+            OUTS( "  CGRAInstruction " << j << ": ",ANSI_FG_MAGENTA);
             // Printing FuInst
             std::cout << "FuInst: (Fukey: " << bitstream->BitstreaminfoOfPE[i].insts[j].FuInst.Fukey
                       << ", Src1key: " << bitstream->BitstreaminfoOfPE[i].insts[j].FuInst.Src1key
@@ -61,29 +64,29 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
             std::cout << std::endl;
         }
         // Printing Constmem bitstream
-        OUTS( "  Constmem1:",ANSI_FG_CYAN); 
+        OUTS( "  Constmem1:",ANSI_FG_MAGENTA); 
         for (int j = 0; j < CONFIG_CGRA_CONSTMEM_SIZE; ++j) {
             std::cout << "    const1[" << j << "]: " << bitstream->BitstreaminfoOfPE[i].const1[j] << std::endl;
             /* Print other fields similarly */
         }
-        OUTS( "  Constmem2:",ANSI_FG_CYAN); 
+        OUTS( "  Constmem2:",ANSI_FG_MAGENTA); 
         for (int j = 0; j < CONFIG_CGRA_CONSTMEM_SIZE; ++j) {
             std::cout << "    const2[" << j << "]: " << bitstream->BitstreaminfoOfPE[i].const2[j] << std::endl;
             /* Print other fields similarly */
         }
         // Printing Shiftconstmem bitstream
-        OUTS( "  Shiftconstmem1:",ANSI_FG_CYAN); 
+        OUTS( "  Shiftconstmem1:",ANSI_FG_MAGENTA); 
         for (int j = 0; j < CONFIG_CGRA_SHIFTCONSTMEM_SIZE; ++j) {
             std::cout << "    shiftconst1[" << j << "]: " << bitstream->BitstreaminfoOfPE[i].shiftconst1[j] << std::endl;
             /* Print other fields similarly */
         }
-        OUTS( "  Shiftconstmem2:",ANSI_FG_CYAN); 
+        OUTS( "  Shiftconstmem2:",ANSI_FG_MAGENTA); 
         for (int j = 0; j < CONFIG_CGRA_SHIFTCONSTMEM_SIZE; ++j) {
             std::cout << "    shiftconst2[" << j << "]: " << bitstream->BitstreaminfoOfPE[i].shiftconst2[j] << std::endl;
             /* Print other fields similarly */
         }
         // Printing CtrlRegs bitstream
-        OUTS( "  CtrlRegs:",ANSI_FG_CYAN); 
+        OUTS( "  CtrlRegs:",ANSI_FG_MAGENTA); 
         std::cout << "    Instnum: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Instnum << std::endl;
         std::cout << "    Constnum1: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Constnum1 << std::endl;
         std::cout << "    Constnum2: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Constnum2 << std::endl;
@@ -106,6 +109,7 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
         /* Print other fields similarly */
         std::cout << std::endl; // Adding separation between BitStreamInfoPE
     }
+#endif
 
     file.close();
 
