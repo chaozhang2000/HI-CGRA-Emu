@@ -4,10 +4,14 @@
 #include <list>
 #include <string>
 #include <set>
+#include "BitStream.h"
 
 using namespace std;
 class CGRALink;
-class CGRANode {
+
+typedef CtrlRegs CGRANodeRegs;
+typedef CGRAInstruction CGRANodeInst;
+class CGRANode{
 
   private:
     int m_id;
@@ -34,7 +38,18 @@ class CGRANode {
 		 */
 		list<CGRANode*>* m_neighbors;
 
+		CGRANodeRegs Regs;
+		CGRANodeRegs Regsupdate;
+		CGRANodeInst InstMem[CONFIG_CGRA_INSTMEM_SIZE];
+		int ConstMem1[CONFIG_CGRA_CONSTMEM_SIZE];
+		int ConstMem2[CONFIG_CGRA_CONSTMEM_SIZE];
+		int ShiftconstMem1[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
+		int ShiftconstMem2[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
+
   public:
+		void CGRANodeReset();
+		void CGRANodeUpdate();
+		void CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream);
 		/**The constructor function of class CGRANode
 		 * this function init CGRANode's ID,x and y according the params,other var is init by default value.
 		 * all opts like load store add,mul,shift and so on is turned on by default

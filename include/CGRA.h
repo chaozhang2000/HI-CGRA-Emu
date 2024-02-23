@@ -2,6 +2,7 @@
 #define CGRA_H
 #include "CGRANode.h"
 #include "CGRALink.h"
+#include "BitStream.h"
 
 class CGRA {
   private:
@@ -22,6 +23,8 @@ class CGRA {
     int m_columns;
 
   public:
+		void CGRAReset();
+		void CGRALoadBitStream(BitStreamInfo* bitstream);
 		/**save the CGRANodes in CGRA
 		 * pointer of nodes[m_rows][m_columns]
 		 */
@@ -57,7 +60,5 @@ class CGRA {
 		 * if not found return NULL,it found return the pointer to the link
 		 */
 		CGRALink* getLinkfrom(CGRANode* t_src,CGRANode* t_dst);
-
-		
 };
 #endif

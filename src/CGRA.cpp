@@ -149,3 +149,22 @@ CGRA::~CGRA(){
 	delete[] nodes;
 	delete[] links;
 }
+
+void CGRA::CGRAReset(){
+  for (int i=0; i<m_rows; ++i) {
+    for (int j=0; j<m_columns; ++j) {
+			nodes[i][j]->CGRANodeReset();
+    }
+  }
+	for (int i=0; i<m_LinkCount;i++){
+		links[i]->CGRALinkReset();
+	}
+}
+
+void CGRA::CGRALoadBitStream(BitStreamInfo* bitstream){
+  for (int i=0; i<m_rows; ++i) {
+    for (int j=0; j<m_columns; ++j) {
+			nodes[i][j]->CGRANodeLoadBitStream(&(bitstream->BitstreaminfoOfPE[m_rows*i+j]));
+    }
+  }
+}

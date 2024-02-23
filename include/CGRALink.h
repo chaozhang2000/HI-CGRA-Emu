@@ -7,6 +7,11 @@ enum {	LINK_DIRECTION_TO_N,
 				LINK_DIRECTION_TO_S,
 				LINK_DIRECTION_TO_W,
 				LINK_DIRECTION_TO_E};
+
+struct CGRALinkRegs{
+	bool valid;
+	int data;
+};
 class CGRALink
 {
   private:
@@ -25,6 +30,11 @@ class CGRALink
 		int m_direction;
 		
   public:
+
+		CGRALinkRegs Regs;
+		CGRALinkRegs Regsupdate;
+		void CGRALinkReset();
+		void CGRALinkUpdate();
 		/**The constructor function of class CGRALink
 		 * this function init CGRANode's ID according the params,other var is init by default value.
 		 * @param t_linkId : the id of the CGRALink

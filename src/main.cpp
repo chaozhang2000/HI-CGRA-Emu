@@ -8,6 +8,9 @@ int main(){
 
 	CGRA* cgra = new CGRA(4,4);
 
+	cgra->CGRAReset();
+	cgra->CGRALoadBitStream(bitstream);
+
 	delete cgra;
 	delete bitstream;
 }

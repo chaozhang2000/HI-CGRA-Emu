@@ -1,5 +1,7 @@
 #include "CGRANode.h"
 #include "CGRALink.h"
+#include "utils.h"
+#include <cstring>
 
 #define COMMON_OPTS(f)\
 				f(mul) f(add) f(getelementptr)
@@ -18,6 +20,7 @@ CGRANode::CGRANode(int t_id, int t_x, int t_y) {
 		LOAD_STORE_OPTS(M_SUPPORTOPTS_INSERT);
 	}
 	m_neighbors = NULL;
+	CGRANodeReset();
 }
 
 int CGRANode::getID(){
@@ -69,4 +72,48 @@ CGRANode::~CGRANode(){
 	if(m_neighbors != NULL){
 		delete m_neighbors;
 	}	
+}
+
+void CGRANode::CGRANodeReset(){
+	memset(&Regs, 0, sizeof(CGRANodeRegs));
+	memset(&Regsupdate, 0, sizeof(CGRANodeRegs));
+	memset(InstMem, 0, sizeof(InstMem));
+	memset(ConstMem1, 0, sizeof(ConstMem1));
+	memset(ConstMem2, 0, sizeof(ConstMem2));
+	memset(ShiftconstMem1, 0, sizeof(ShiftconstMem1));
+	memset(ShiftconstMem2, 0, sizeof(ShiftconstMem2));
+}
+void CGRANode::CGRANodeUpdate(){
+	memcpy(&Regs,&Regsupdate,sizeof(CGRANodeRegs));
+}
+void CGRANode::CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream){
+	memcpy(&Regs,&(PEbitstream->ctrlregs),sizeof(CGRANodeRegs));
+	memcpy(InstMem,PEbitstream->insts,sizeof(InstMem));
+	memcpy(ConstMem1,PEbitstream->const1,sizeof(ConstMem1));
+	memcpy(ConstMem2,PEbitstream->const2,sizeof(ConstMem2));
+	memcpy(ShiftconstMem1,PEbitstream->shiftconst1, sizeof(ShiftconstMem1));
+	memcpy(ShiftconstMem2,PEbitstream->shiftconst2, sizeof(ShiftconstMem2));
+/*
+				OUTS("BitStreamInfoCGRANode " << m_id<< ":",ANSI_FG_CYAN);
+        // Printing CGRAInstruction bitstream
+        for (int j = 0; j < CONFIG_CGRA_INSTMEM_SIZE; ++j) {
+            OUTS( "  CGRAInstruction " << j << ": ",ANSI_FG_MAGENTA);
+            // Printing FuInst
+            std::cout << "FuInst: (Fukey: " << InstMem[j].FuInst.Fukey
+                      << ", Src1key: " << InstMem[j].FuInst.Src1key
+                      << ", Src2key: " << InstMem[j].FuInst.Src2key
+                      << ", FudelayII: " << InstMem[j].FuInst.FudelayII
+                      << ", Shiftconst1: " << InstMem[j].FuInst.Shiftconst1
+                      << ", Shiftconst2: " << InstMem[j].FuInst.Shiftconst2
+                      << ") ";
+            // Printing LinkInsts
+            for (int k = 0; k < 4; ++k) {
+                std::cout << "LinkInst " << k << ": (Dkey: "
+                          << InstMem[j].LinkInsts[k].Dkey
+                          << ", DelayII: " << InstMem[j].LinkInsts[k].DelayII
+                          << ") ";
+            }
+            std::cout << std::endl;
+        }
+				*/
 }
