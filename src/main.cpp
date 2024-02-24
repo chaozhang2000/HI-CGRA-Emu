@@ -11,6 +11,8 @@ int main(){
 	cgra->CGRAReset();
 	cgra->CGRALoadBitStream(bitstream);
 
+	cgra->CGRAExecOnecycle();
+
 	delete cgra;
 	delete bitstream;
 }

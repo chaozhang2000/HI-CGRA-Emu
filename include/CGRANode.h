@@ -5,6 +5,7 @@
 #include <string>
 #include <set>
 #include "BitStream.h"
+#include "DataMem.h"
 
 using namespace std;
 class CGRALink;
@@ -46,10 +47,13 @@ class CGRANode{
 		int ShiftconstMem1[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
 		int ShiftconstMem2[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
 
+		DataMem* datamem;
+
   public:
 		void CGRANodeReset();
 		void CGRANodeUpdate();
 		void CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream);
+		void CGRANodeExecOnecycle();
 		/**The constructor function of class CGRANode
 		 * this function init CGRANode's ID,x and y according the params,other var is init by default value.
 		 * all opts like load store add,mul,shift and so on is turned on by default

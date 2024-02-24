@@ -10,6 +10,7 @@
 #define M_SUPPORTOPTS_INSERT(k) m_supportOpts.insert(#k);
 
 CGRANode::CGRANode(int t_id, int t_x, int t_y) {
+	datamem = NULL;
   m_id = t_id;
   m_disabled = false;
 	m_hasDataMem = true;
@@ -18,6 +19,7 @@ CGRANode::CGRANode(int t_id, int t_x, int t_y) {
 	COMMON_OPTS(M_SUPPORTOPTS_INSERT);
 	if(m_hasDataMem){
 		LOAD_STORE_OPTS(M_SUPPORTOPTS_INSERT);
+		datamem = new DataMem(m_id);
 	}
 	m_neighbors = NULL;
 	CGRANodeReset();
@@ -72,6 +74,9 @@ CGRANode::~CGRANode(){
 	if(m_neighbors != NULL){
 		delete m_neighbors;
 	}	
+	if(datamem != NULL){
+		delete datamem;
+	}
 }
 
 void CGRANode::CGRANodeReset(){
@@ -116,4 +121,10 @@ void CGRANode::CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream){
             std::cout << std::endl;
         }
 				*/
+}
+
+void CGRANode::CGRANodeExecOnecycle(){
+				std::cout << datamem->readData(0) <<std::endl;
+	datamem->writeData(0,1);
+				std::cout << datamem->readData(0) <<std::endl;
 }

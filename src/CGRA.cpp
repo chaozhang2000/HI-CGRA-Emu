@@ -168,3 +168,11 @@ void CGRA::CGRALoadBitStream(BitStreamInfo* bitstream){
     }
   }
 }
+
+void CGRA::CGRAExecOnecycle(){
+  for (int i=0; i<m_rows; ++i) {
+    for (int j=0; j<m_columns; ++j) {
+			nodes[i][j]->CGRANodeExecOnecycle();
+    }
+	}
+}

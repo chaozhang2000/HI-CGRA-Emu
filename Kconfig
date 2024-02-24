@@ -52,6 +52,9 @@ config CGRA_CONSTMEM_SIZE
 config CGRA_SHIFTCONSTMEM_SIZE
 	int "Shift Const Mem size of each PE (uint:max number of shift const)"
 	default 8
+config CGRA_DATAMEM_SIZE
+	int "Data Mem size of each PE (uint:max number of data)"
+	default 128
 endmenu
 
 config CGRA_INFO
