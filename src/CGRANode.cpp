@@ -92,7 +92,7 @@ void CGRANode::CGRANodeUpdate(){
 	memcpy(&Regs,&Regsupdate,sizeof(CGRANodeRegs));
 }
 void CGRANode::CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream){
-	memcpy(&Regs,&(PEbitstream->ctrlregs),sizeof(CGRANodeRegs));
+	memcpy(&(Regs.ctrlregs),&(PEbitstream->ctrlregs),sizeof(CtrlRegs));
 	memcpy(InstMem,PEbitstream->insts,sizeof(InstMem));
 	memcpy(ConstMem1,PEbitstream->const1,sizeof(ConstMem1));
 	memcpy(ConstMem2,PEbitstream->const2,sizeof(ConstMem2));

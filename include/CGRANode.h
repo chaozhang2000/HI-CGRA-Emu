@@ -10,8 +10,11 @@
 using namespace std;
 class CGRALink;
 
-typedef CtrlRegs CGRANodeRegs;
 typedef CGRAInstruction CGRANodeInst;
+struct CGRANodeRegs{
+	CtrlRegs ctrlregs;
+	int fureg;
+};
 class CGRANode{
 
   private:
