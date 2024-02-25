@@ -15,5 +15,7 @@ class DataMem
 		int readData(int address);
 		void writeData(int address,int data);
 
+		void writeDatas(int * src,int address, int length);
+
 };
 #endif

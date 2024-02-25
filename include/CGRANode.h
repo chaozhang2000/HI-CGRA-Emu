@@ -47,9 +47,8 @@ class CGRANode{
 		int ShiftconstMem1[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
 		int ShiftconstMem2[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
 
-		DataMem* datamem;
-
   public:
+		DataMem* datamem;
 		void CGRANodeReset();
 		void CGRANodeUpdate();
 		void CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream);

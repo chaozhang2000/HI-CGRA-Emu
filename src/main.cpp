@@ -1,5 +1,6 @@
 #include"BitStream.h"
 #include "CGRA.h"
+#include "mm2data.h"
 
 int main(){
 	BitStreamInfo* bitstream = new BitStreamInfo;
@@ -10,6 +11,8 @@ int main(){
 
 	cgra->CGRAReset();
 	cgra->CGRALoadBitStream(bitstream);
+	cgra->nodes[0][0]->datamem->writeDatas(dataA,0,400);
+	cgra->nodes[0][1]->datamem->writeDatas(dataB,0,400);
 
 	cgra->CGRAExecOnecycle();
 

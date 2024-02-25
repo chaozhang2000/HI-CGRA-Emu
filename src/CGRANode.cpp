@@ -125,6 +125,5 @@ void CGRANode::CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream){
 
 void CGRANode::CGRANodeExecOnecycle(){
 				std::cout << datamem->readData(0) <<std::endl;
-	datamem->writeData(0,1);
-				std::cout << datamem->readData(0) <<std::endl;
+				std::cout << datamem->readData(1) <<std::endl;
 }
