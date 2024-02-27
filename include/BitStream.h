@@ -19,6 +19,7 @@ struct CGRAInstruction {
 };
 struct CtrlRegs {
 	int Instnum;
+	int IInum;
 	int Constnum1;
 	int Constnum2;
 	int Shiftconstnum1;
@@ -34,10 +35,14 @@ struct CtrlRegs {
 	int K_thread;
 
 	int Instcnt;
+	int IIcnt;
 	int Constcnt1;
 	int Constcnt2;
 	int Shiftconstcnt1;
 	int Shiftconstcnt2;
+	int K;
+	int J;
+	int I;
 };
 
 struct BitStreamInfoPE{

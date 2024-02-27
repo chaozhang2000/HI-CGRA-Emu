@@ -175,4 +175,12 @@ void CGRA::CGRAExecOnecycle(){
 			nodes[i][j]->CGRANodeExecOnecycle();
     }
 	}
+  for (int i=0; i<m_rows; ++i) {
+    for (int j=0; j<m_columns; ++j) {
+			nodes[i][j]->CGRANodeUpdate();
+    }
+	}
+	for(int i = 0;i<m_LinkCount;i++){
+		links[i]->CGRALinkUpdate();
+	}
 }

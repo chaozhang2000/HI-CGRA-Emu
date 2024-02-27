@@ -34,8 +34,7 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
 		}
 		if(bitstream->CheckInfo.ShiftConstMemSize!=CONFIG_CGRA_SHIFTCONSTMEM_SIZE){
         ERRS("Bitstream ShiftConstMem size == "<< bitstream->CheckInfo.ShiftConstMemSize <<" but EMU ShiftConstMem size is set "<<CONFIG_CGRA_SHIFTCONSTMEM_SIZE,ANSI_FG_RED);
-				return false;
-		}
+				return false; }
 
 #ifdef CONFIG_BITSTREAM_DUMP
     // Printing the bitstream
@@ -88,6 +87,7 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
         // Printing CtrlRegs bitstream
         OUTS( "  CtrlRegs:",ANSI_FG_MAGENTA); 
         std::cout << "    Instnum: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Instnum << std::endl;
+        std::cout << "    IInum: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.IInum << std::endl;
         std::cout << "    Constnum1: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Constnum1 << std::endl;
         std::cout << "    Constnum2: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Constnum2 << std::endl;
         std::cout << "    Shiftconstnum1: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Shiftconstnum1 << std::endl;
@@ -102,10 +102,14 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
         std::cout << "    J_thread: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.J_thread << std::endl;
         std::cout << "    K_thread: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.K_thread << std::endl;
         std::cout << "    Instcnt: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Instcnt << std::endl;
+        std::cout << "    IIcnt: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.IIcnt << std::endl;
         std::cout << "    Constcnt1: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Constcnt1 << std::endl;
         std::cout << "    Constcnt2: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Constcnt2 << std::endl;
         std::cout << "    Shiftconstcnt1: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Shiftconstcnt1 << std::endl;
         std::cout << "    Shiftconstcnt2: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Shiftconstcnt2 << std::endl;
+        std::cout << "    K: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.K << std::endl;
+        std::cout << "    J: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.J<< std::endl;
+        std::cout << "    I: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.I<< std::endl;
         /* Print other fields similarly */
         std::cout << std::endl; // Adding separation between BitStreamInfoPE
     }

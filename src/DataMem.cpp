@@ -1,5 +1,6 @@
 #include "DataMem.h"
 #include <cassert>
+#include <iostream>
 DataMem::DataMem(int id) {
     m_id = id;
     for (int i = 0; i < CONFIG_CGRA_DATAMEM_SIZE; ++i) {
@@ -9,6 +10,7 @@ DataMem::DataMem(int id) {
 void DataMem::writeData(int address, int data) {
 	assert(address >= 0 && address < CONFIG_CGRA_DATAMEM_SIZE);
 	this->data[address] = data;
+	std::cout<<"storew data "<<data <<" to address "<<address<<std::endl;
 }
 int DataMem::readData(int address) {
 	assert(address >= 0 && address < CONFIG_CGRA_DATAMEM_SIZE);

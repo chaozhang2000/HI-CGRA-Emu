@@ -15,6 +15,10 @@ struct CGRANodeRegs{
 	CtrlRegs ctrlregs;
 	int fureg;
 };
+struct Src{
+	int data;
+	bool valid;
+};
 class CGRANode{
 
   private:
@@ -30,9 +34,11 @@ class CGRANode{
 		/**the list to record input CGRALinks of this CGRANode
 		 */
     list <CGRALink*> m_inLinks;
+		CGRALink* inLinks[4];
 		/**the list to record output CGRALinks of this CGRANode
 		 */
     list <CGRALink*> m_outLinks;
+		CGRALink* outLinks[4];
 
 		/**the set to record all opname that this CGRANode is support
 		 */
@@ -49,6 +55,31 @@ class CGRANode{
 		int ConstMem2[CONFIG_CGRA_CONSTMEM_SIZE];
 		int ShiftconstMem1[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
 		int ShiftconstMem2[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
+
+		typedef Src(CGRANode::*getSrcPtr)(int key);
+		getSrcPtr getsrc[10];
+		Src getsrcnull(int key);
+		Src getsrcfromFureg(int key);
+		Src getsrcformconstmem(int key);
+		Src getsrcfromNlink(int key);
+		Src getsrcfromSlink(int key);
+		Src getsrcfromWlink(int key);
+		Src getsrcfromElink(int key);
+		Src getsrcfromloop0reg(int key);
+		Src getsrcfromloop1reg(int key);
+		Src getsrcfromloop2reg(int key);
+
+		typedef int (CGRANode::*fuExecPtr)(int src1,int src2);
+		fuExecPtr fuopts[6];
+		int emptyopt(int src1, int src2);
+		int addopt(int src1, int src2);
+		int mulopt(int src1, int src2);
+		int loadopt(int src1, int src2);
+		int storeopt(int src1, int src2);
+
+		getSrcPtr getsrclink[8];
+		Src furesult;
+		Src getsrcfromFu(int key);
 
   public:
 		DataMem* datamem;

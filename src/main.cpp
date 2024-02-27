@@ -1,6 +1,7 @@
 #include"BitStream.h"
 #include "CGRA.h"
 #include "mm2data.h"
+#include <iostream>
 
 int main(){
 	BitStreamInfo* bitstream = new BitStreamInfo;
@@ -14,7 +15,11 @@ int main(){
 	cgra->nodes[0][0]->datamem->writeDatas(dataA,0,400);
 	cgra->nodes[0][1]->datamem->writeDatas(dataB,0,400);
 
+	for(int i = 0; i< 100;i++){
+	std::cout<<std::endl;
+	std::cout<<"----------------cycle"<<i << "------------"<<std::endl;
 	cgra->CGRAExecOnecycle();
+	}
 
 	delete cgra;
 	delete bitstream;

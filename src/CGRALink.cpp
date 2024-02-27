@@ -36,3 +36,9 @@ void CGRALink::CGRALinkReset(){
 void CGRALink::CGRALinkUpdate(){
 	memcpy(&Regs,&Regsupdate,sizeof(CGRALinkRegs));
 }
+Src CGRALink::getSrc(){
+	Src src;
+	src.data = Regs.data;
+	src.valid = Regs.valid;
+	return src;
+}
