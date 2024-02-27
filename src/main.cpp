@@ -12,8 +12,8 @@ int main(){
 
 	cgra->CGRAReset();
 	cgra->CGRALoadBitStream(bitstream);
-	cgra->nodes[0][0]->datamem->writeDatas(dataA,0,400);
-	cgra->nodes[0][1]->datamem->writeDatas(dataB,0,400);
+	cgra->nodes[0][0]->datamem->writeDatas(dataA,0,9);
+	cgra->nodes[0][1]->datamem->writeDatas(dataB,0,9);
 
 	for(int i = 0; i< 100;i++){
 	std::cout<<std::endl;
