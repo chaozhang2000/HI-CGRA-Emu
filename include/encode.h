@@ -23,4 +23,5 @@ enum {  FU_EMPTY,
 				FU_ADD,
 				FU_GETELEMENTPTR, 
 				FU_LOAD,
-				FU_STORE};
+				FU_STORE,
+				FU_SHL};

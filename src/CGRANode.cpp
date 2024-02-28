@@ -92,6 +92,10 @@ int CGRANode::storeopt(int src1, int src2){
 				datamem->writeData(src2,src1);
 				return 0;
 }
+int CGRANode::shlopt(int src1,int src2){
+				std::cout<<"exec shl"<<std::endl;
+				return src1<<src2;
+}
 #define COMMON_OPTS(f)\
 				f(mul) f(add) f(getelementptr)
 #define LOAD_STORE_OPTS(f)\
@@ -128,6 +132,7 @@ fuopts[FU_ADD] = &CGRANode::addopt;
 fuopts[FU_GETELEMENTPTR] = &CGRANode::addopt;
 fuopts[FU_LOAD] = &CGRANode::loadopt;
 fuopts[FU_STORE] = &CGRANode::storeopt;
+fuopts[FU_SHL] = &CGRANode::shlopt;
 
 getsrclink[LINK_NOT_OCCUPY] = &CGRANode::getsrcnull;
 getsrclink[LINK_OCCUPY_EMPTY] = &CGRANode::getsrcnull;
