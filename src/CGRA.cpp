@@ -184,3 +184,12 @@ void CGRA::CGRAExecOnecycle(){
 		links[i]->CGRALinkUpdate();
 	}
 }
+
+bool CGRA::IfFinished(){
+  for (int i=0; i<m_rows; ++i) {
+    for (int j=0; j<m_columns; ++j) {
+			if(nodes[i][j]->CGRANodeFinish() == false) return false;
+    }
+	}
+	return true;
+}

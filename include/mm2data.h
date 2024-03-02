@@ -1,3 +1,4 @@
+#include "CGRA.h"
 #define SIZE 3
 
 int mm2dataA[SIZE][SIZE] = {{1,2,3},{6,7,8},{11,12,13}};
@@ -47,3 +48,9 @@ int mm2dataB[SIZE][SIZE] = {{400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 4
 
 int *dataA = (int*) mm2dataA;
 int *dataB = (int*) mm2dataB;
+
+
+void loaddataformm2(CGRA* cgra){
+	cgra->nodes[0][0]->datamem->writeDatas(dataA,0,9);
+	cgra->nodes[0][1]->datamem->writeDatas(dataB,0,9);
+}

@@ -73,6 +73,7 @@ Src CGRANode::getsrcfromFu(int key){
 	return furesult;
 }
 int CGRANode::emptyopt(int src1, int src2){
+				std::cout<<"empty opt"<<std::endl;
 				return 0;
 }
 int CGRANode::addopt(int src1, int src2){
@@ -250,6 +251,10 @@ void CGRANode::CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream){
 
 void CGRANode::CGRANodeExecOnecycle(){
 				std::cout<<"-------CGRANodeID:"<<m_id<<"-------"<<std::endl;
+				if(Regs.ctrlregs.Finish == true){
+					std::cout << "this PE has finished state stop changing"<<std::endl;
+					return;
+				}
 				furesult.valid = false;
 				bool canexe = false;
 				bool const1 = false;
@@ -257,19 +262,27 @@ void CGRANode::CGRANodeExecOnecycle(){
 				bool shiftconst1 = false;
 				bool shiftconst2 = false;
 				CGRANodeInst Inst = InstMem[Regs.ctrlregs.Instcnt];
-            std::cout << "FuInst: (Fukey: " << Inst.FuInst.Fukey
+            std::cout << "Fetch FuInst: (Fukey: " << Inst.FuInst.Fukey
                       << ", Src1key: " << Inst.FuInst.Src1key
                       << ", Src2key: " << Inst.FuInst.Src2key
                       << ", FudelayII: " << Inst.FuInst.FudelayII
                       << ", Shiftconst1: " << Inst.FuInst.Shiftconst1
                       << ", Shiftconst2: " << Inst.FuInst.Shiftconst2
                       << ") ";
-
+         std::cout << std::endl;
+				for(int i = 0; i< 4; ++ i){
+          	std::cout << "Fetch LinkInst " << i << ": (Dkey: "
+           	         << Inst.LinkInsts[i].Dkey
+           	         << ", DelayII: " << Inst.LinkInsts[i].DelayII
+           	         << ") "<<std::endl;
+					}
             std::cout << std::endl;
-						std::cout << "IIcnt = "<<Regs.ctrlregs.IIcnt<<std::endl;
 
 				/* can exe ?*/
 				/* fu's src should valid,and all outlink's src should valid too, if delay or have finished,the src is considered valid, but when exe we just stay the state not change*/
+
+				std::cout << "Check if srcs ready:" << std::endl;
+				std::cout << "Fu srcs:" << std::endl;
 				Src fusrc1 = (this->*getsrc[Inst.FuInst.Src1key])(0);
 				Src fusrc2 = (this->*getsrc[Inst.FuInst.Src2key])(1);
 				if(Inst.FuInst.Shiftconst1)fusrc1.data = fusrc1.data + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1];
@@ -282,6 +295,7 @@ void CGRANode::CGRANodeExecOnecycle(){
 
 				if(fusrc1.valid && fusrc2.valid && Regs.ctrlregs.IIcnt >= Inst.FuInst.FudelayII && Regs.ctrlregs.IIcnt < Regs.ctrlregs.IInum + Inst.FuInst.FudelayII) furesult.valid = true;
 
+				std::cout << "Link srcs:" << std::endl;
 				Src linksrcs[4];
 				linksrcs[LINK_DIRECTION_TO_N] = (this->*getsrclink[Inst.LinkInsts[LINK_DIRECTION_TO_N].Dkey])(0);
 				linksrcs[LINK_DIRECTION_TO_S] = (this->*getsrclink[Inst.LinkInsts[LINK_DIRECTION_TO_S].Dkey])(0);
@@ -294,9 +308,11 @@ void CGRANode::CGRANodeExecOnecycle(){
 
 				canexe = fusrc1.valid & fusrc2.valid & linksrcs[LINK_DIRECTION_TO_N].valid & linksrcs[LINK_DIRECTION_TO_S].valid & linksrcs[LINK_DIRECTION_TO_W].valid & linksrcs[LINK_DIRECTION_TO_E].valid;
 				if(canexe){
-				std::cout<<"exec this cycle"<<std::endl;
+				std::cout<<"srcs ready"<<std::endl;
+				std::cout << std::endl;
 				}
 				else{
+				std::cout <<"srcs not ready" << std::endl;
 				std::cout<<"not exec this cycle"<<std::endl;
 				std::cout<<"fusrc1.valid:" <<fusrc1.valid<<std::endl;
 				std::cout<<"fusrc2.valid:" <<fusrc2.valid<<std::endl;
@@ -304,71 +320,92 @@ void CGRANode::CGRANodeExecOnecycle(){
 				std::cout<<"linksrcsS.valid:" <<linksrcs[LINK_DIRECTION_TO_S].valid<<std::endl;
 				std::cout<<"linksrcsW.valid:" <<linksrcs[LINK_DIRECTION_TO_W].valid<<std::endl;
 				std::cout<<"linksrcsE.valid:" <<linksrcs[LINK_DIRECTION_TO_E].valid<<std::endl;
+				std::cout << std::endl;
 				}
 
 				/*exe update the state in CGRANode and Link*/
 				if(canexe){
 					/*fuexe if delay or finish do nothing*/
+					std::cout<<"Fu calculate result:"<<std::endl;
 					if(Regs.ctrlregs.IIcnt >= Inst.FuInst.FudelayII && Regs.ctrlregs.IIcnt < Regs.ctrlregs.IInum + Inst.FuInst.FudelayII){
-						std::cout<<"fuexe:"<<std::endl;
 						std::cout << "fusrc1 = "<<fusrc1.data<<" valid = "<<fusrc1.valid<<std::endl;
 						std::cout << "fusrc2 = "<<fusrc2.data<<" valid = "<<fusrc2.valid<<std::endl;
 						furesult.data = (this->*fuopts[Inst.FuInst.Fukey])(fusrc1.data,fusrc2.data);
 						furesult.valid = Inst.FuInst.Fukey == FU_EMPTY ? false:true;
-						std::cout << "furesult "<<furesult.data << std::endl;
+						std::cout << "furesult: data = "<<furesult.data <<" valid = "<<furesult.valid<< std::endl;
 					}
-					else{
-						std::cout<<"fu do nothing because of delay or finish"<<std::endl;
+					else if(Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII){
+						std::cout<<"fu do nothing because of delay"<<std::endl;
+					}else{
+						std::cout<<"fu do nothing because of finish"<<std::endl;
 					}
+					std::cout << std::endl;
 
+					std::cout<<"Update state in PE:(current state-> next state)"<<endl;
 					//update CGRANode state
 					if(Inst.FuInst.Src1key == SRC_OCCUPY_FROM_CONST_MEM)const1 = true;
 					if(Inst.FuInst.Src2key == SRC_OCCUPY_FROM_CONST_MEM)const2 = true;
 					if((Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst1) shiftconst1 = true;
 					if((Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst2) shiftconst2 = true;
 
+#define PRINT_STATE_UPDATE(name,oldValue, newValue)\
+					std::cout<<name<<" : "<<oldValue<<" -> "<<newValue<<std::endl;
 					/*Instcnt update*/
 					Regsupdate.ctrlregs.Instcnt = Regs.ctrlregs.Instcnt == Regs.ctrlregs.Instnum -1 ?0:Regs.ctrlregs.Instcnt + 1;
+					PRINT_STATE_UPDATE("ctrlregs.Instcnt",Regs.ctrlregs.Instcnt,Regsupdate.ctrlregs.Instcnt);
 					/*IIcnt update*/
 					Regsupdate.ctrlregs.IIcnt = Regs.ctrlregs.Instcnt == Regs.ctrlregs.Instnum -1 ? Regs.ctrlregs.IIcnt +1: Regs.ctrlregs.IIcnt;
+					PRINT_STATE_UPDATE("ctrlregs.IIcnt",Regs.ctrlregs.IIcnt,Regsupdate.ctrlregs.IIcnt);
 					/*Constcnt1 update*/
 					if(const1)Regsupdate.ctrlregs.Constcnt1 = Regs.ctrlregs.Constcnt1== Regs.ctrlregs.Constnum1 -1 ?0:Regs.ctrlregs.Constcnt1 + 1 ; 
+					PRINT_STATE_UPDATE("ctrlregs.Constcnt1",Regs.ctrlregs.Constcnt1,Regsupdate.ctrlregs.Constcnt1);
 					/*Constcnt2 update*/
 					if(const2)Regsupdate.ctrlregs.Constcnt2 = Regs.ctrlregs.Constcnt2== Regs.ctrlregs.Constnum2 -1 ?0:Regs.ctrlregs.Constcnt2 + 1; 
+					PRINT_STATE_UPDATE("ctrlregs.Constcnt2",Regs.ctrlregs.Constcnt2,Regsupdate.ctrlregs.Constcnt2);
 					/*Shiftconstcnt1 update*/
 					if(shiftconst1)Regsupdate.ctrlregs.Shiftconstcnt1 = Regs.ctrlregs.Shiftconstcnt1== Regs.ctrlregs.Shiftconstnum1 -1 ?0:Regs.ctrlregs.Shiftconstcnt1 + 1; 
+					PRINT_STATE_UPDATE("ctrlregs.Shiftconstcnt1",Regs.ctrlregs.Shiftconstcnt1,Regsupdate.ctrlregs.Shiftconstcnt1);
 					/*Constcnt2 update*/
 					if(shiftconst2)Regsupdate.ctrlregs.Shiftconstcnt2 = Regs.ctrlregs.Shiftconstcnt2== Regs.ctrlregs.Shiftconstnum2 -1 ? 0:Regs.ctrlregs.Shiftconstcnt2 + 1; 
+					PRINT_STATE_UPDATE("ctrlregs.Shiftconstcnt2",Regs.ctrlregs.Shiftconstcnt2,Regsupdate.ctrlregs.Shiftconstcnt2);
 
 					/*K update*/
 					bool Kchange = Regs.ctrlregs.Instcnt == Regs.ctrlregs.Instnum -1;
 					bool Kinit = Kchange && (Regs.ctrlregs.K_inc>0 ? Regs.ctrlregs.K + Regs.ctrlregs.K_inc>=Regs.ctrlregs.K_thread:Regs.ctrlregs.K + Regs.ctrlregs.K_inc<=Regs.ctrlregs.K_thread);
 					int Knew = Kinit ? Regs.ctrlregs.K_init : Regs.ctrlregs.K + Regs.ctrlregs.K_inc;
 					Regsupdate.ctrlregs.K =Kchange ? Knew : Regs.ctrlregs.K;
+					PRINT_STATE_UPDATE("ctrlregs.K",Regs.ctrlregs.K,Regsupdate.ctrlregs.K);
 					
 					/*J update*/
 					bool Jchange = Kinit;
 					bool Jinit = Jchange && (Regs.ctrlregs.J_inc>0 ? Regs.ctrlregs.J + Regs.ctrlregs.J_inc>=Regs.ctrlregs.J_thread:Regs.ctrlregs.J + Regs.ctrlregs.J_inc<=Regs.ctrlregs.J_thread);
 					int Jnew = Jinit ? Regs.ctrlregs.J_init : Regs.ctrlregs.J + Regs.ctrlregs.J_inc;
 					Regsupdate.ctrlregs.J = Jchange? Jnew:Regs.ctrlregs.J;
+					PRINT_STATE_UPDATE("ctrlregs.J",Regs.ctrlregs.J,Regsupdate.ctrlregs.J);
 
 					/*I update*/
 					bool Ichange = Jinit;
 					bool Iinit = Ichange && (Regs.ctrlregs.I_inc>0 ? Regs.ctrlregs.I + Regs.ctrlregs.I_inc>=Regs.ctrlregs.I_thread:Regs.ctrlregs.I + Regs.ctrlregs.I_inc<=Regs.ctrlregs.I_thread);
 					int Inew = Iinit ? Regs.ctrlregs.I_init : Regs.ctrlregs.I + Regs.ctrlregs.I_inc;
 					Regsupdate.ctrlregs.I = Ichange ? Inew:Regs.ctrlregs.I;
+					PRINT_STATE_UPDATE("ctrlregs.I",Regs.ctrlregs.I,Regsupdate.ctrlregs.I);
+
+					/*finishreg update*/
+					Regsupdate.ctrlregs.Finish = (Regs.ctrlregs.IIcnt == Regs.ctrlregs.FinishIIcnt)&&(Regs.ctrlregs.Instcnt == Regs.ctrlregs.FinishInstcnt);
+					PRINT_STATE_UPDATE("ctrlregs.Finish",Regs.ctrlregs.Finish,Regsupdate.ctrlregs.Finish);
 					
 					/*fureg update*/
 					if(furesult.valid) Regsupdate.fureg = furesult.data;
+					PRINT_STATE_UPDATE("fureg",Regs.fureg,Regsupdate.fureg);
+
+#undef PRINT_STATE_UPDATE
+
+					std::cout<<std::endl;
 
 
 					/*link data update*/
+					std::cout<<"Send data to Link:"<<std::endl;
 					for(int i = 0; i< 4; ++ i){
-          	std::cout << "LinkInst " << i << ": (Dkey: "
-           	         << Inst.LinkInsts[i].Dkey
-           	         << ", DelayII: " << Inst.LinkInsts[i].DelayII
-           	         << ") "<<std::endl;
-						
 						if(Inst.LinkInsts[i].Dkey !=LINK_NOT_OCCUPY && Inst.LinkInsts[i].Dkey !=LINK_OCCUPY_EMPTY){
 							if(Regs.ctrlregs.IIcnt >= Inst.LinkInsts[i].DelayII && Regs.ctrlregs.IIcnt < Regs.ctrlregs.IInum + Inst.LinkInsts[i].DelayII){
 								Src linksrc = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
@@ -379,4 +416,7 @@ void CGRANode::CGRANodeExecOnecycle(){
 						}
 					}
 				}
+}
+bool CGRANode::CGRANodeFinish(){
+	return Regs.ctrlregs.Finish;
 }

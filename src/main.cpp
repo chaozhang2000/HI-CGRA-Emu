@@ -13,20 +13,25 @@ int main(){
 
 	cgra->CGRAReset();
 	cgra->CGRALoadBitStream(bitstream);
-
-	cgra->nodes[0][0]->datamem->writeDatas(conv3data1,0,20);
-	cgra->nodes[0][1]->datamem->writeDatas(conv3data2,0,20);
-	cgra->nodes[0][2]->datamem->writeDatas(conv3data3,0,20);
-
+	
+	loaddataforconv3(cgra);
 	//mm2
 	//cgra->nodes[0][0]->datamem->writeDatas(dataA,0,9);
 	//cgra->nodes[0][1]->datamem->writeDatas(dataB,0,9);
 
-	for(int i = 0; i< 100;i++){
+	int cycle = 0;
+	for(cycle = 0; cycle< 1000;cycle++){
 	std::cout<<std::endl;
-	std::cout<<"----------------cycle"<<i << "------------"<<std::endl;
+	std::cout<<"----------------cycle"<<cycle << "------------"<<std::endl;
 	cgra->CGRAExecOnecycle();
+	if (cgra->IfFinished()){
+		break;
 	}
+	}
+
+	std::cout<<"-----------finish simulate-----------"<<std::endl;
+	std::cout<<"Simulate cycle = "<<cycle<<std::endl;
+	printresultconv3(cgra);
 
 	delete cgra;
 	delete bitstream;

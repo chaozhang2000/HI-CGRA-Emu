@@ -26,6 +26,7 @@ class CGRA {
 		void CGRAReset();
 		void CGRALoadBitStream(BitStreamInfo* bitstream);
 		void CGRAExecOnecycle();
+		bool IfFinished();
 		/**save the CGRANodes in CGRA
 		 * pointer of nodes[m_rows][m_columns]
 		 */

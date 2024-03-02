@@ -88,6 +88,8 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
         OUTS( "  CtrlRegs:",ANSI_FG_MAGENTA); 
         std::cout << "    Instnum: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Instnum << std::endl;
         std::cout << "    IInum: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.IInum << std::endl;
+        std::cout << "    FinishInstcnt: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.FinishInstcnt << std::endl;
+        std::cout << "    FinishIIcnt: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.FinishIIcnt<< std::endl;
         std::cout << "    Constnum1: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Constnum1 << std::endl;
         std::cout << "    Constnum2: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Constnum2 << std::endl;
         std::cout << "    Shiftconstnum1: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Shiftconstnum1 << std::endl;
@@ -110,6 +112,7 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
         std::cout << "    K: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.K << std::endl;
         std::cout << "    J: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.J<< std::endl;
         std::cout << "    I: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.I<< std::endl;
+        std::cout << "    Finish: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Finish<< std::endl;
         /* Print other fields similarly */
         std::cout << std::endl; // Adding separation between BitStreamInfoPE
     }

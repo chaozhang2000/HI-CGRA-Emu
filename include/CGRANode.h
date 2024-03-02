@@ -88,6 +88,7 @@ class CGRANode{
 		void CGRANodeUpdate();
 		void CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream);
 		void CGRANodeExecOnecycle();
+		bool CGRANodeFinish();
 		/**The constructor function of class CGRANode
 		 * this function init CGRANode's ID,x and y according the params,other var is init by default value.
 		 * all opts like load store add,mul,shift and so on is turned on by default
