@@ -32,6 +32,7 @@ int main(){
 	std::cout<<"-----------finish simulate-----------"<<std::endl;
 	std::cout<<"Simulate cycle = "<<cycle<<std::endl;
 	printresultconv3(cgra);
+	checkresultconv3(cgra);
 
 	delete cgra;
 	delete bitstream;
