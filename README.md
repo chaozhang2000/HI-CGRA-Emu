@@ -18,3 +18,9 @@ sudo apt-get install make build-essential bison flex libncurses-dev
 make menuconfig
 make
 ```
+
+4. run demo
+```
+make defconfig
+make run
+```
