@@ -250,6 +250,7 @@ void CGRANode::CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream){
 }
 
 void CGRANode::CGRANodeExecOnecycle(){
+				/* print Inst */
 				std::cout<<"-------CGRANodeID:"<<m_id<<"-------"<<std::endl;
 				if(Regs.ctrlregs.Finish == true){
 					std::cout << "this PE has finished state stop changing"<<std::endl;
@@ -283,15 +284,18 @@ void CGRANode::CGRANodeExecOnecycle(){
 
 				std::cout << "Check if srcs ready:" << std::endl;
 				std::cout << "Fu srcs:" << std::endl;
-				Src fusrc1 = (this->*getsrc[Inst.FuInst.Src1key])(0);
-				Src fusrc2 = (this->*getsrc[Inst.FuInst.Src2key])(1);
+				/*def wire src1 and src2 into fu*/
+				Src fusrc1 = {0,false};
+				Src fusrc2 = {0,false};
+
+				/*wire src1 and src2 get data and valid from linkin or other srcs */
+				fusrc1 = (this->*getsrc[Inst.FuInst.Src1key])(0);
+				fusrc2 = (this->*getsrc[Inst.FuInst.Src2key])(1);
+				fusrc1.valid |= Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.FuInst.FudelayII;
+				fusrc2.valid |= Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.FuInst.FudelayII;
+
 				if(Inst.FuInst.Shiftconst1)fusrc1.data = fusrc1.data + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1];
 				if(Inst.FuInst.Shiftconst2)fusrc2.data = fusrc2.data + ShiftconstMem2[Regs.ctrlregs.Shiftconstcnt2];
-
-				if(Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.FuInst.FudelayII){
-					fusrc1.valid = true;
-					fusrc2.valid = true;
-				}
 
 				if(fusrc1.valid && fusrc2.valid && Regs.ctrlregs.IIcnt >= Inst.FuInst.FudelayII && Regs.ctrlregs.IIcnt < Regs.ctrlregs.IInum + Inst.FuInst.FudelayII) furesult.valid = true;
 
@@ -371,21 +375,21 @@ void CGRANode::CGRANodeExecOnecycle(){
 
 					/*K update*/
 					bool Kchange = Regs.ctrlregs.Instcnt == Regs.ctrlregs.Instnum -1;
-					bool Kinit = Kchange && (Regs.ctrlregs.K_inc>0 ? Regs.ctrlregs.K + Regs.ctrlregs.K_inc>=Regs.ctrlregs.K_thread:Regs.ctrlregs.K + Regs.ctrlregs.K_inc<=Regs.ctrlregs.K_thread);
+					bool Kinit = (Regs.ctrlregs.K_inc>0 ? Regs.ctrlregs.K + Regs.ctrlregs.K_inc>=Regs.ctrlregs.K_thread:Regs.ctrlregs.K + Regs.ctrlregs.K_inc<=Regs.ctrlregs.K_thread);
 					int Knew = Kinit ? Regs.ctrlregs.K_init : Regs.ctrlregs.K + Regs.ctrlregs.K_inc;
 					Regsupdate.ctrlregs.K =Kchange ? Knew : Regs.ctrlregs.K;
 					PRINT_STATE_UPDATE("ctrlregs.K",Regs.ctrlregs.K,Regsupdate.ctrlregs.K);
 					
 					/*J update*/
 					bool Jchange = Kinit;
-					bool Jinit = Jchange && (Regs.ctrlregs.J_inc>0 ? Regs.ctrlregs.J + Regs.ctrlregs.J_inc>=Regs.ctrlregs.J_thread:Regs.ctrlregs.J + Regs.ctrlregs.J_inc<=Regs.ctrlregs.J_thread);
+					bool Jinit = (Regs.ctrlregs.J_inc>0 ? Regs.ctrlregs.J + Regs.ctrlregs.J_inc>=Regs.ctrlregs.J_thread:Regs.ctrlregs.J + Regs.ctrlregs.J_inc<=Regs.ctrlregs.J_thread);
 					int Jnew = Jinit ? Regs.ctrlregs.J_init : Regs.ctrlregs.J + Regs.ctrlregs.J_inc;
 					Regsupdate.ctrlregs.J = Jchange? Jnew:Regs.ctrlregs.J;
 					PRINT_STATE_UPDATE("ctrlregs.J",Regs.ctrlregs.J,Regsupdate.ctrlregs.J);
 
 					/*I update*/
 					bool Ichange = Jinit;
-					bool Iinit = Ichange && (Regs.ctrlregs.I_inc>0 ? Regs.ctrlregs.I + Regs.ctrlregs.I_inc>=Regs.ctrlregs.I_thread:Regs.ctrlregs.I + Regs.ctrlregs.I_inc<=Regs.ctrlregs.I_thread);
+					bool Iinit = (Regs.ctrlregs.I_inc>0 ? Regs.ctrlregs.I + Regs.ctrlregs.I_inc>=Regs.ctrlregs.I_thread:Regs.ctrlregs.I + Regs.ctrlregs.I_inc<=Regs.ctrlregs.I_thread);
 					int Inew = Iinit ? Regs.ctrlregs.I_init : Regs.ctrlregs.I + Regs.ctrlregs.I_inc;
 					Regsupdate.ctrlregs.I = Ichange ? Inew:Regs.ctrlregs.I;
 					PRINT_STATE_UPDATE("ctrlregs.I",Regs.ctrlregs.I,Regsupdate.ctrlregs.I);
