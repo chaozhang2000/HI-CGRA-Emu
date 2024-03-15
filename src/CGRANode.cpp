@@ -284,33 +284,35 @@ void CGRANode::CGRANodeExecOnecycle(){
 
 				std::cout << "Check if srcs ready:" << std::endl;
 				std::cout << "Fu srcs:" << std::endl;
+				bool fuinstskip = Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.FuInst.FudelayII;
+				bool fuinstnotskip = !fuinstskip;
+				bool linkinstskip[4];
+				bool linkinstnotskip[4];
+				for(int i = 0; i<4;i++){
+					linkinstskip[i] = Regs.ctrlregs.IIcnt < Inst.LinkInsts[i].DelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.LinkInsts[i].DelayII;
+					linkinstnotskip[i] = !linkinstskip[i];
+				}
 				/*def wire src1 and src2 into fu*/
 				Src fusrc1 = {0,false};
 				Src fusrc2 = {0,false};
-
 				/*wire src1 and src2 get data and valid from linkin or other srcs */
 				fusrc1 = (this->*getsrc[Inst.FuInst.Src1key])(0);
 				fusrc2 = (this->*getsrc[Inst.FuInst.Src2key])(1);
-				fusrc1.valid |= Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.FuInst.FudelayII;
-				fusrc2.valid |= Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.FuInst.FudelayII;
+				fusrc1.data =Inst.FuInst.Shiftconst1 ? fusrc1.data + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1]:fusrc1.data;
+				fusrc2.data =Inst.FuInst.Shiftconst2 ? fusrc2.data + ShiftconstMem2[Regs.ctrlregs.Shiftconstcnt2]:fusrc2.data;
+				furesult.data = (this->*fuopts[Inst.FuInst.Fukey])(fusrc1.data,fusrc2.data);
+				furesult.valid = (fusrc1.valid && fusrc2.valid)|fuinstskip; //&& fuinstnotskip;
 
-				if(Inst.FuInst.Shiftconst1)fusrc1.data = fusrc1.data + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1];
-				if(Inst.FuInst.Shiftconst2)fusrc2.data = fusrc2.data + ShiftconstMem2[Regs.ctrlregs.Shiftconstcnt2];
-
-				if(fusrc1.valid && fusrc2.valid && Regs.ctrlregs.IIcnt >= Inst.FuInst.FudelayII && Regs.ctrlregs.IIcnt < Regs.ctrlregs.IInum + Inst.FuInst.FudelayII) furesult.valid = true;
-
+				/*wire crossbar's out to links*/
 				std::cout << "Link srcs:" << std::endl;
-				Src linksrcs[4];
-				linksrcs[LINK_DIRECTION_TO_N] = (this->*getsrclink[Inst.LinkInsts[LINK_DIRECTION_TO_N].Dkey])(0);
-				linksrcs[LINK_DIRECTION_TO_S] = (this->*getsrclink[Inst.LinkInsts[LINK_DIRECTION_TO_S].Dkey])(0);
-				linksrcs[LINK_DIRECTION_TO_W] =(this->*getsrclink[Inst.LinkInsts[LINK_DIRECTION_TO_W].Dkey])(0);
-				linksrcs[LINK_DIRECTION_TO_E] = (this->*getsrclink[Inst.LinkInsts[LINK_DIRECTION_TO_E].Dkey])(0);
-				if(Regs.ctrlregs.IIcnt < Inst.LinkInsts[LINK_DIRECTION_TO_N].DelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.LinkInsts[LINK_DIRECTION_TO_N].DelayII)linksrcs[LINK_DIRECTION_TO_N].valid = true;
-				if(Regs.ctrlregs.IIcnt < Inst.LinkInsts[LINK_DIRECTION_TO_S].DelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.LinkInsts[LINK_DIRECTION_TO_S].DelayII)linksrcs[LINK_DIRECTION_TO_S].valid = true;
-				if(Regs.ctrlregs.IIcnt < Inst.LinkInsts[LINK_DIRECTION_TO_W].DelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.LinkInsts[LINK_DIRECTION_TO_W].DelayII)linksrcs[LINK_DIRECTION_TO_W].valid = true;
-				if(Regs.ctrlregs.IIcnt < Inst.LinkInsts[LINK_DIRECTION_TO_E].DelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.LinkInsts[LINK_DIRECTION_TO_E].DelayII)linksrcs[LINK_DIRECTION_TO_E].valid = true;
+				Src crossbarouts[4];
+				for(int i =0;i<4;i++){
+					crossbarouts[i] = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
+					crossbarouts[i].valid |= linkinstskip[i];
+				}
 
-				canexe = fusrc1.valid & fusrc2.valid & linksrcs[LINK_DIRECTION_TO_N].valid & linksrcs[LINK_DIRECTION_TO_S].valid & linksrcs[LINK_DIRECTION_TO_W].valid & linksrcs[LINK_DIRECTION_TO_E].valid;
+				canexe = furesult.valid & crossbarouts[LINK_DIRECTION_TO_N].valid & crossbarouts[LINK_DIRECTION_TO_S].valid & crossbarouts[LINK_DIRECTION_TO_W].valid & crossbarouts[LINK_DIRECTION_TO_E].valid;
+
 				if(canexe){
 				std::cout<<"srcs ready"<<std::endl;
 				std::cout << std::endl;
@@ -320,10 +322,10 @@ void CGRANode::CGRANodeExecOnecycle(){
 				std::cout<<"not exec this cycle"<<std::endl;
 				std::cout<<"fusrc1.valid:" <<fusrc1.valid<<std::endl;
 				std::cout<<"fusrc2.valid:" <<fusrc2.valid<<std::endl;
-				std::cout<<"linksrcsN.valid:" <<linksrcs[LINK_DIRECTION_TO_N].valid<<std::endl;
-				std::cout<<"linksrcsS.valid:" <<linksrcs[LINK_DIRECTION_TO_S].valid<<std::endl;
-				std::cout<<"linksrcsW.valid:" <<linksrcs[LINK_DIRECTION_TO_W].valid<<std::endl;
-				std::cout<<"linksrcsE.valid:" <<linksrcs[LINK_DIRECTION_TO_E].valid<<std::endl;
+				std::cout<<"crossbaroutsN.valid:" <<crossbarouts[LINK_DIRECTION_TO_N].valid<<std::endl;
+				std::cout<<"crossbaroutsS.valid:" <<crossbarouts[LINK_DIRECTION_TO_S].valid<<std::endl;
+				std::cout<<"crossbaroutsW.valid:" <<crossbarouts[LINK_DIRECTION_TO_W].valid<<std::endl;
+				std::cout<<"crossbaroutsE.valid:" <<crossbarouts[LINK_DIRECTION_TO_E].valid<<std::endl;
 				std::cout << std::endl;
 				}
 
@@ -334,8 +336,6 @@ void CGRANode::CGRANodeExecOnecycle(){
 					if(Regs.ctrlregs.IIcnt >= Inst.FuInst.FudelayII && Regs.ctrlregs.IIcnt < Regs.ctrlregs.IInum + Inst.FuInst.FudelayII){
 						std::cout << "fusrc1 = "<<fusrc1.data<<" valid = "<<fusrc1.valid<<std::endl;
 						std::cout << "fusrc2 = "<<fusrc2.data<<" valid = "<<fusrc2.valid<<std::endl;
-						furesult.data = (this->*fuopts[Inst.FuInst.Fukey])(fusrc1.data,fusrc2.data);
-						furesult.valid = Inst.FuInst.Fukey == FU_EMPTY ? false:true;
 						std::cout << "furesult: data = "<<furesult.data <<" valid = "<<furesult.valid<< std::endl;
 					}
 					else if(Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII){
@@ -399,8 +399,10 @@ void CGRANode::CGRANodeExecOnecycle(){
 					PRINT_STATE_UPDATE("ctrlregs.Finish",Regs.ctrlregs.Finish,Regsupdate.ctrlregs.Finish);
 					
 					/*fureg update*/
-					if(furesult.valid) Regsupdate.fureg = furesult.data;
+					bool fureg_wen = canexe& furesult.valid & (Inst.FuInst.Fukey != FU_EMPTY) & fuinstnotskip;
+					if(fureg_wen) {Regsupdate.fureg = furesult.data;
 					PRINT_STATE_UPDATE("fureg",Regs.fureg,Regsupdate.fureg);
+					}
 
 #undef PRINT_STATE_UPDATE
 
@@ -410,13 +412,10 @@ void CGRANode::CGRANodeExecOnecycle(){
 					/*link data update*/
 					std::cout<<"Send data to Link:"<<std::endl;
 					for(int i = 0; i< 4; ++ i){
-						if(Inst.LinkInsts[i].Dkey !=LINK_NOT_OCCUPY && Inst.LinkInsts[i].Dkey !=LINK_OCCUPY_EMPTY){
-							if(Regs.ctrlregs.IIcnt >= Inst.LinkInsts[i].DelayII && Regs.ctrlregs.IIcnt < Regs.ctrlregs.IInum + Inst.LinkInsts[i].DelayII){
-								Src linksrc = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
-								std::cout<<"send "<<linksrc.data<<" to direction"<<i<<std::endl;
-								outLinks[i]->Regsupdate.data = linksrc.data;
-								outLinks[i]->Regsupdate.valid = linksrc.valid;
-							}
+						bool linkout_wen = (Inst.LinkInsts[i].Dkey !=LINK_NOT_OCCUPY && Inst.LinkInsts[i].Dkey !=LINK_OCCUPY_EMPTY)&&linkinstnotskip[i];
+						if(linkout_wen){
+							outLinks[i]->Regsupdate.data = crossbarouts[i].data;
+							outLinks[i]->Regsupdate.valid= crossbarouts[i].valid;
 						}
 					}
 				}
