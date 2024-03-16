@@ -86,7 +86,8 @@ Src CGRANode::mulopt(Src src1, Src src2){
 }
 Src CGRANode::loadopt(Src src1, Src src2){
 				std::cout<<"exec load"<<std::endl;
-				return datamem->fureadData(src1.data);
+				if(src1.valid && src2.valid)return datamem->fureadData(src1.data);
+				else return {0,false};
 }
 Src CGRANode::storeopt(Src src1, Src src2){
 				std::cout<<"exec store"<<std::endl;
@@ -255,6 +256,8 @@ void CGRANode::CGRANodeExecOnecycle(){
 				bool const2 =Inst.FuInst.Src2key == SRC_OCCUPY_FROM_CONST_MEM;
 				bool shiftconst1 =(Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst1;
 				bool shiftconst2 =(Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst2;
+				bool needtosendout[4];
+			  for(int i = 0;i <4;i++){needtosendout[i]	= (Inst.LinkInsts[i].Dkey !=LINK_NOT_OCCUPY && Inst.LinkInsts[i].Dkey !=LINK_OCCUPY_EMPTY);}
 
 				/*fu out and crossbar out*/
 				std::cout << "Check if srcs ready:" << std::endl;
@@ -276,19 +279,32 @@ void CGRANode::CGRANodeExecOnecycle(){
 				fusrc1.data =Inst.FuInst.Shiftconst1 ? fusrc1.data + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1]:fusrc1.data;
 				fusrc2.data =Inst.FuInst.Shiftconst2 ? fusrc2.data + ShiftconstMem2[Regs.ctrlregs.Shiftconstcnt2]:fusrc2.data;
 				furesult = (this->*fuopts[Inst.FuInst.Fukey])(fusrc1,fusrc2);
-				furesult.valid = (fusrc1.valid && fusrc2.valid)|fuinstskip; //&& fuinstnotskip;
-				bool furesultoutvalid = furesult.valid | fuinstskip; //furesult.valid is the wire directly out from alu
-
-				/*wire crossbar's out to links*/
-				std::cout << "Link srcs:" << std::endl;
+				furesult.valid = (fusrc1.valid && fusrc2.valid); //&& fuinstnotskip;
+																												 //
 				Src crossbarouts[4];
 				for(int i =0;i<4;i++){
 					crossbarouts[i] = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
-					crossbarouts[i].valid |= linkinstskip[i];
+				}
+				bool fufinish = furesult.valid | fuinstskip; //furesult.valid is the wire directly out from alu,furesultoutvalid is another wire
+				bool linkfinish[4] ;
+				for(int i = 0; i<4;i++){
+					linkfinish[i] =linkinstskip[i] | (crossbarouts[i].valid);
+					//linkfinish[i] =linkinstskip[i] | (crossbarouts[i].valid & (outLinks[i]->Regs.valid == false));
 				}
 
+				/*wire crossbar's out to links*/
+				std::cout << "Link srcs:" << std::endl;
+
+				//bool sendoutcanbereceive[4];
+				//for(int i =0 ;i<4;i++){sendoutcanbereceive =outLinks[i]->Regs.valid == false}
+				//bool allsendoutcanbereceive &= needtosendout[i] ? sendoutcanbereceive[0]:true ;
 				bool canexe;
-				canexe = furesultoutvalid & crossbarouts[LINK_DIRECTION_TO_N].valid & crossbarouts[LINK_DIRECTION_TO_S].valid & crossbarouts[LINK_DIRECTION_TO_W].valid & crossbarouts[LINK_DIRECTION_TO_E].valid;
+				canexe = fufinish & linkfinish[LINK_DIRECTION_TO_N] & linkfinish[LINK_DIRECTION_TO_S]& linkfinish[LINK_DIRECTION_TO_W] & linkfinish[LINK_DIRECTION_TO_E]
+								;
+				bool fureg_wen = canexe& furesult.valid & (Inst.FuInst.Fukey != FU_EMPTY) & fuinstnotskip;
+
+				bool linkout_wen[4];
+			  for(int i = 0;i <4;i++){linkout_wen[i]	= canexe & needtosendout[i] &&linkinstnotskip[i];}
 
 				if(canexe){
 				std::cout<<"srcs ready"<<std::endl;
@@ -371,7 +387,6 @@ void CGRANode::CGRANodeExecOnecycle(){
 					PRINT_STATE_UPDATE("ctrlregs.Finish",Regs.ctrlregs.Finish,Regsupdate.ctrlregs.Finish);
 					
 					/*fureg update*/
-					bool fureg_wen = canexe& furesult.valid & (Inst.FuInst.Fukey != FU_EMPTY) & fuinstnotskip;
 					if(fureg_wen) {Regsupdate.fureg = furesult.data;
 					PRINT_STATE_UPDATE("fureg",Regs.fureg,Regsupdate.fureg);
 					}
@@ -386,8 +401,7 @@ void CGRANode::CGRANodeExecOnecycle(){
 					/*link data update*/
 					std::cout<<"Send data to Link:"<<std::endl;
 					for(int i = 0; i< 4; ++ i){
-						bool linkout_wen = (Inst.LinkInsts[i].Dkey !=LINK_NOT_OCCUPY && Inst.LinkInsts[i].Dkey !=LINK_OCCUPY_EMPTY)&&linkinstnotskip[i];
-						if(linkout_wen){
+						if(linkout_wen[i]){
 							outLinks[i]->Regsupdate.data = crossbarouts[i].data;
 							outLinks[i]->Regsupdate.valid= crossbarouts[i].valid;
 						}
