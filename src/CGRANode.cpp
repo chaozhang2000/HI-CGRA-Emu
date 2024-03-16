@@ -288,16 +288,13 @@ void CGRANode::CGRANodeExecOnecycle(){
 				bool fufinish = furesult.valid | fuinstskip; //furesult.valid is the wire directly out from alu,furesultoutvalid is another wire
 				bool linkfinish[4] ;
 				for(int i = 0; i<4;i++){
-					linkfinish[i] =linkinstskip[i] | (crossbarouts[i].valid);
-					//linkfinish[i] =linkinstskip[i] | (crossbarouts[i].valid & (outLinks[i]->Regs.valid == false));
+					//linkfinish[i] =linkinstskip[i] | (crossbarouts[i].valid);
+					linkfinish[i] =linkinstskip[i] |crossbarouts[i].valid;
 				}
 
 				/*wire crossbar's out to links*/
 				std::cout << "Link srcs:" << std::endl;
 
-				//bool sendoutcanbereceive[4];
-				//for(int i =0 ;i<4;i++){sendoutcanbereceive =outLinks[i]->Regs.valid == false}
-				//bool allsendoutcanbereceive &= needtosendout[i] ? sendoutcanbereceive[0]:true ;
 				bool canexe;
 				canexe = fufinish & linkfinish[LINK_DIRECTION_TO_N] & linkfinish[LINK_DIRECTION_TO_S]& linkfinish[LINK_DIRECTION_TO_W] & linkfinish[LINK_DIRECTION_TO_E]
 								;
