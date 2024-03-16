@@ -23,3 +23,7 @@ void DataMem::writeDatas(int * src,int address, int length){
 		data[address + i] = src[i];
 	}
 }
+Src DataMem::fureadData(int address) {
+	assert(address >= 0 && address < CONFIG_CGRA_DATAMEM_SIZE);
+	return {data[address],true};
+}

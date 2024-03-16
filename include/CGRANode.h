@@ -6,6 +6,7 @@
 #include <set>
 #include "BitStream.h"
 #include "DataMem.h"
+#include "data.h"
 
 using namespace std;
 class CGRALink;
@@ -14,10 +15,6 @@ typedef CGRAInstruction CGRANodeInst;
 struct CGRANodeRegs{
 	CtrlRegs ctrlregs;
 	int fureg;
-};
-struct Src{
-	int data;
-	bool valid;
 };
 class CGRANode{
 
@@ -69,14 +66,14 @@ class CGRANode{
 		Src getsrcfromloop1reg(int key);
 		Src getsrcfromloop2reg(int key);
 
-		typedef int (CGRANode::*fuExecPtr)(int src1,int src2);
+		typedef Src(CGRANode::*fuExecPtr)(Src src1,Src src2);
 		fuExecPtr fuopts[7];
-		int emptyopt(int src1, int src2);
-		int addopt(int src1, int src2);
-		int mulopt(int src1, int src2);
-		int loadopt(int src1, int src2);
-		int storeopt(int src1, int src2);
-		int shlopt(int src1,int src2);
+		Src emptyopt(Src src1, Src src2);
+		Src addopt(Src src1, Src src2);
+		Src mulopt(Src src1, Src src2);
+		Src loadopt(Src src1, Src src2);
+		Src storeopt(Src src1, Src src2);
+		Src shlopt(Src src1,Src src2);
 
 		getSrcPtr getsrclink[8];
 		Src furesult;

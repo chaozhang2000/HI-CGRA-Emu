@@ -2,6 +2,7 @@
 #define CGRALink_H
 
 #include "CGRANode.h"
+#include "data.h"
 
 enum {	LINK_DIRECTION_TO_N, 
 				LINK_DIRECTION_TO_S,
@@ -12,7 +13,6 @@ struct CGRALinkRegs{
 	int data;
 	bool valid;
 };
-struct Src;
 class CGRALink
 {
   private:

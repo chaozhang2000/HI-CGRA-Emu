@@ -72,30 +72,30 @@ Src CGRANode::getsrcfromloop2reg(int key){
 Src CGRANode::getsrcfromFu(int key){
 	return furesult;
 }
-int CGRANode::emptyopt(int src1, int src2){
+Src CGRANode::emptyopt(Src src1, Src src2){
 				std::cout<<"empty opt"<<std::endl;
-				return 0;
+				return {0,true};
 }
-int CGRANode::addopt(int src1, int src2){
+Src CGRANode::addopt(Src src1, Src src2){
 				std::cout<<"exec add"<<std::endl;
-				return src1 + src2;
+				return {src1.data + src2.data,src1.valid&&src2.valid};
 }
-int CGRANode::mulopt(int src1, int src2){
+Src CGRANode::mulopt(Src src1, Src src2){
 				std::cout<<"exec mul"<<std::endl;
-				return src1 * src2;
+				return {src1.data * src2.data,src1.valid&& src2.valid};
 }
-int CGRANode::loadopt(int src1, int src2){
+Src CGRANode::loadopt(Src src1, Src src2){
 				std::cout<<"exec load"<<std::endl;
-				return datamem->readData(src1);
+				return datamem->fureadData(src1.data);
 }
-int CGRANode::storeopt(int src1, int src2){
+Src CGRANode::storeopt(Src src1, Src src2){
 				std::cout<<"exec store"<<std::endl;
-				datamem->writeData(src2,src1);
-				return 0;
+				//datamem->writeData(src2.data,src1.data);
+				return {0,src1.valid&&src2.valid};
 }
-int CGRANode::shlopt(int src1,int src2){
+Src CGRANode::shlopt(Src src1,Src src2){
 				std::cout<<"exec shl"<<std::endl;
-				return src1<<src2;
+				return {src1.data << src2.data,src1.valid && src2.valid};
 }
 #define COMMON_OPTS(f)\
 				f(mul) f(add) f(getelementptr)
@@ -224,44 +224,15 @@ void CGRANode::CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream){
 	memcpy(ConstMem2,PEbitstream->const2,sizeof(ConstMem2));
 	memcpy(ShiftconstMem1,PEbitstream->shiftconst1, sizeof(ShiftconstMem1));
 	memcpy(ShiftconstMem2,PEbitstream->shiftconst2, sizeof(ShiftconstMem2));
-/*
-				OUTS("BitStreamInfoCGRANode " << m_id<< ":",ANSI_FG_CYAN);
-        // Printing CGRAInstruction bitstream
-        for (int j = 0; j < CONFIG_CGRA_INSTMEM_SIZE; ++j) {
-            OUTS( "  CGRAInstruction " << j << ": ",ANSI_FG_MAGENTA);
-            // Printing FuInst
-            std::cout << "FuInst: (Fukey: " << InstMem[j].FuInst.Fukey
-                      << ", Src1key: " << InstMem[j].FuInst.Src1key
-                      << ", Src2key: " << InstMem[j].FuInst.Src2key
-                      << ", FudelayII: " << InstMem[j].FuInst.FudelayII
-                      << ", Shiftconst1: " << InstMem[j].FuInst.Shiftconst1
-                      << ", Shiftconst2: " << InstMem[j].FuInst.Shiftconst2
-                      << ") ";
-            // Printing LinkInsts
-            for (int k = 0; k < 4; ++k) {
-                std::cout << "LinkInst " << k << ": (Dkey: "
-                          << InstMem[j].LinkInsts[k].Dkey
-                          << ", DelayII: " << InstMem[j].LinkInsts[k].DelayII
-                          << ") ";
-            }
-            std::cout << std::endl;
-        }
-				*/
 }
 
 void CGRANode::CGRANodeExecOnecycle(){
-				/* print Inst */
+				/* Fetch LinkInst print Inst */
 				std::cout<<"-------CGRANodeID:"<<m_id<<"-------"<<std::endl;
 				if(Regs.ctrlregs.Finish == true){
 					std::cout << "this PE has finished state stop changing"<<std::endl;
 					return;
 				}
-				furesult.valid = false;
-				bool canexe = false;
-				bool const1 = false;
-				bool const2 = false;
-				bool shiftconst1 = false;
-				bool shiftconst2 = false;
 				CGRANodeInst Inst = InstMem[Regs.ctrlregs.Instcnt];
             std::cout << "Fetch FuInst: (Fukey: " << Inst.FuInst.Fukey
                       << ", Src1key: " << Inst.FuInst.Src1key
@@ -279,9 +250,13 @@ void CGRANode::CGRANodeExecOnecycle(){
 					}
             std::cout << std::endl;
 
-				/* can exe ?*/
-				/* fu's src should valid,and all outlink's src should valid too, if delay or have finished,the src is considered valid, but when exe we just stay the state not change*/
+				/* Decode */
+				bool const1 =Inst.FuInst.Src1key == SRC_OCCUPY_FROM_CONST_MEM;
+				bool const2 =Inst.FuInst.Src2key == SRC_OCCUPY_FROM_CONST_MEM;
+				bool shiftconst1 =(Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst1;
+				bool shiftconst2 =(Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst2;
 
+				/*fu out and crossbar out*/
 				std::cout << "Check if srcs ready:" << std::endl;
 				std::cout << "Fu srcs:" << std::endl;
 				bool fuinstskip = Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.FuInst.FudelayII;
@@ -300,8 +275,9 @@ void CGRANode::CGRANodeExecOnecycle(){
 				fusrc2 = (this->*getsrc[Inst.FuInst.Src2key])(1);
 				fusrc1.data =Inst.FuInst.Shiftconst1 ? fusrc1.data + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1]:fusrc1.data;
 				fusrc2.data =Inst.FuInst.Shiftconst2 ? fusrc2.data + ShiftconstMem2[Regs.ctrlregs.Shiftconstcnt2]:fusrc2.data;
-				furesult.data = (this->*fuopts[Inst.FuInst.Fukey])(fusrc1.data,fusrc2.data);
+				furesult = (this->*fuopts[Inst.FuInst.Fukey])(fusrc1,fusrc2);
 				furesult.valid = (fusrc1.valid && fusrc2.valid)|fuinstskip; //&& fuinstnotskip;
+				bool furesultoutvalid = furesult.valid | fuinstskip; //furesult.valid is the wire directly out from alu
 
 				/*wire crossbar's out to links*/
 				std::cout << "Link srcs:" << std::endl;
@@ -311,7 +287,8 @@ void CGRANode::CGRANodeExecOnecycle(){
 					crossbarouts[i].valid |= linkinstskip[i];
 				}
 
-				canexe = furesult.valid & crossbarouts[LINK_DIRECTION_TO_N].valid & crossbarouts[LINK_DIRECTION_TO_S].valid & crossbarouts[LINK_DIRECTION_TO_W].valid & crossbarouts[LINK_DIRECTION_TO_E].valid;
+				bool canexe;
+				canexe = furesultoutvalid & crossbarouts[LINK_DIRECTION_TO_N].valid & crossbarouts[LINK_DIRECTION_TO_S].valid & crossbarouts[LINK_DIRECTION_TO_W].valid & crossbarouts[LINK_DIRECTION_TO_E].valid;
 
 				if(canexe){
 				std::cout<<"srcs ready"<<std::endl;
@@ -347,11 +324,6 @@ void CGRANode::CGRANodeExecOnecycle(){
 
 					std::cout<<"Update state in PE:(current state-> next state)"<<endl;
 					//update CGRANode state
-					if(Inst.FuInst.Src1key == SRC_OCCUPY_FROM_CONST_MEM)const1 = true;
-					if(Inst.FuInst.Src2key == SRC_OCCUPY_FROM_CONST_MEM)const2 = true;
-					if((Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst1) shiftconst1 = true;
-					if((Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst2) shiftconst2 = true;
-
 #define PRINT_STATE_UPDATE(name,oldValue, newValue)\
 					std::cout<<name<<" : "<<oldValue<<" -> "<<newValue<<std::endl;
 					/*Instcnt update*/
@@ -405,6 +377,8 @@ void CGRANode::CGRANodeExecOnecycle(){
 					}
 
 #undef PRINT_STATE_UPDATE
+					/*store*/
+					if(Inst.FuInst.Fukey ==FU_STORE){datamem->writeData(fusrc2.data,fusrc1.data);}
 
 					std::cout<<std::endl;
 
