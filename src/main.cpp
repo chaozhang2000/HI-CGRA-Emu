@@ -14,7 +14,7 @@ int main(int argc,char* argv[]){
 	std::string bitstreamfilename = argv[1];
 	std::string configfilename = argv[2];
 
-  if(!getconfig(&config_info,configfilename))return false;
+  if(!config_info.getconfig(configfilename))return false;
 
 	BitStreamInfo* bitstream =new BitStreamInfo;
 	ConstructBitStream(bitstream);
