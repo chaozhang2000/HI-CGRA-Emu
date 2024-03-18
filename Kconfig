@@ -42,20 +42,6 @@ config CC_DEBUG
   default n
 endmenu
 
-menu "CGRA config"
-config CGRA_INSTMEM_SIZE 
-  int "Inst MEM size of each PE (uint:max number of Inst)"
-  default 8
-config CGRA_CONSTMEM_SIZE
-	int "Const Mem size of each PE (uint:max number of const)"
-	default 8
-config CGRA_SHIFTCONSTMEM_SIZE
-	int "Shift Const Mem size of each PE (uint:max number of shift const)"
-	default 8
-config CGRA_DATAMEM_SIZE
-	int "Data Mem size of each PE (uint:max number of data)"
-	default 128
-endmenu
 
 config CGRA_INFO
 	bool "Print CGRA information"

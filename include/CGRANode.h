@@ -47,11 +47,11 @@ class CGRANode{
 
 		CGRANodeRegs Regs;
 		CGRANodeRegs Regsupdate;
-		CGRANodeInst InstMem[CONFIG_CGRA_INSTMEM_SIZE];
-		int ConstMem1[CONFIG_CGRA_CONSTMEM_SIZE];
-		int ConstMem2[CONFIG_CGRA_CONSTMEM_SIZE];
-		int ShiftconstMem1[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
-		int ShiftconstMem2[CONFIG_CGRA_SHIFTCONSTMEM_SIZE];
+		CGRANodeInst* InstMem;
+		int *ConstMem1;
+		int *ConstMem2;
+		int *ShiftconstMem1;
+		int *ShiftconstMem2;
 
 		typedef Src(CGRANode::*getSrcPtr)(int key);
 		getSrcPtr getsrc[10];

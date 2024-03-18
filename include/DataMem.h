@@ -8,11 +8,12 @@ class DataMem
   private:
     int m_id;
 
-		int data[CONFIG_CGRA_DATAMEM_SIZE];
+		int *data;
 		
   public:
 
 		DataMem(int id);
+		~DataMem();
 		int readData(int address);
 		Src fureadData(int address);
 		void writeData(int address,int data);

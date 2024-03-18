@@ -2,6 +2,7 @@
 #include <fstream>
 #include "BitStream.h"
 #include "utils.h"
+#include "config.h"
 
 /**This Function read bitstream from bitstream.bin
  * then check if InstMemsize,ConstMemsize,ShiftConstMemsize is right
@@ -17,24 +18,34 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
     }
 
     // Read bitstream from file
-    file.read(reinterpret_cast<char*>(bitstream), sizeof(BitStreamInfo));
+    file.read(reinterpret_cast<char*>(bitstream), sizeof(BitStreamCheck));
 
     if (!file) {
         ERRS("Error occurred while reading the file. May cause by InstMemSize,ConstMemSize,ShiftConstMemSize wrong configuration",ANSI_FG_RED); 
         return false;
     }
 
-		if(bitstream->CheckInfo.InstMemSize!=CONFIG_CGRA_INSTMEM_SIZE){
-        ERRS("Bitstream InstMem size == "<< bitstream->CheckInfo.InstMemSize <<" but EMU InstMem size is set "<<CONFIG_CGRA_INSTMEM_SIZE,ANSI_FG_RED);
+		if(bitstream->CheckInfo.InstMemSize!=config_info.instmemsize){
+        ERRS("Bitstream InstMem size == "<< bitstream->CheckInfo.InstMemSize <<" but EMU InstMem size is set "<<config_info.instmemsize,ANSI_FG_RED);
 				return false;
 		}
-		if(bitstream->CheckInfo.ConstMemSize!=CONFIG_CGRA_CONSTMEM_SIZE){
-        ERRS("Bitstream ConstMem size == "<< bitstream->CheckInfo.ConstMemSize <<" but EMU ConstMem size is set "<<CONFIG_CGRA_CONSTMEM_SIZE,ANSI_FG_RED);
+		if(bitstream->CheckInfo.ConstMemSize!=config_info.constmemsize){
+        ERRS("Bitstream ConstMem size == "<< bitstream->CheckInfo.ConstMemSize <<" but EMU ConstMem size is set "<<config_info.constmemsize,ANSI_FG_RED);
 				return false;
 		}
-		if(bitstream->CheckInfo.ShiftConstMemSize!=CONFIG_CGRA_SHIFTCONSTMEM_SIZE){
-        ERRS("Bitstream ShiftConstMem size == "<< bitstream->CheckInfo.ShiftConstMemSize <<" but EMU ShiftConstMem size is set "<<CONFIG_CGRA_SHIFTCONSTMEM_SIZE,ANSI_FG_RED);
-				return false; }
+		if(bitstream->CheckInfo.ShiftConstMemSize!=config_info.shiftconstmemsize){
+        ERRS("Bitstream ShiftConstMem size == "<< bitstream->CheckInfo.ShiftConstMemSize <<" but EMU ShiftConstMem size is set "<<config_info.shiftconstmemsize,ANSI_FG_RED);
+				return false; 
+		}
+		
+	for(int i = 0;i<config_info.rows * config_info.cols ;i++){
+					file.read((char*)(bitstream->BitstreaminfoOfPE[i].insts),sizeof(CGRAInstruction)*config_info.instmemsize);
+					file.read((char*)(bitstream->BitstreaminfoOfPE[i].const1),sizeof(int)*config_info.constmemsize);
+					file.read((char*)(bitstream->BitstreaminfoOfPE[i].const2),sizeof(int)*config_info.constmemsize);
+					file.read((char*)(bitstream->BitstreaminfoOfPE[i].shiftconst1),sizeof(int)*config_info.shiftconstmemsize);
+					file.read((char*)(bitstream->BitstreaminfoOfPE[i].shiftconst2),sizeof(int)*config_info.shiftconstmemsize);
+					file.read((char*)(&(bitstream->BitstreaminfoOfPE[i].ctrlregs)),sizeof(CtrlRegs));
+	}
 
 #ifdef CONFIG_BITSTREAM_DUMP
     // Printing the bitstream
@@ -43,7 +54,7 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
     for (int i = 0; i < 16; ++i) {
 				OUTS("BitStreamInfoPE " << i << ":",ANSI_FG_CYAN);
         // Printing CGRAInstruction bitstream
-        for (int j = 0; j < CONFIG_CGRA_INSTMEM_SIZE; ++j) {
+        for (int j = 0; j < config_info.instmemsize; ++j) {
             OUTS( "  CGRAInstruction " << j << ": ",ANSI_FG_MAGENTA);
             // Printing FuInst
             std::cout << "FuInst: (Fukey: " << bitstream->BitstreaminfoOfPE[i].insts[j].FuInst.Fukey
@@ -64,23 +75,23 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
         }
         // Printing Constmem bitstream
         OUTS( "  Constmem1:",ANSI_FG_MAGENTA); 
-        for (int j = 0; j < CONFIG_CGRA_CONSTMEM_SIZE; ++j) {
+        for (int j = 0; j < config_info.constmemsize; ++j) {
             std::cout << "    const1[" << j << "]: " << bitstream->BitstreaminfoOfPE[i].const1[j] << std::endl;
             /* Print other fields similarly */
         }
         OUTS( "  Constmem2:",ANSI_FG_MAGENTA); 
-        for (int j = 0; j < CONFIG_CGRA_CONSTMEM_SIZE; ++j) {
+        for (int j = 0; j < config_info.constmemsize; ++j) {
             std::cout << "    const2[" << j << "]: " << bitstream->BitstreaminfoOfPE[i].const2[j] << std::endl;
             /* Print other fields similarly */
         }
         // Printing Shiftconstmem bitstream
         OUTS( "  Shiftconstmem1:",ANSI_FG_MAGENTA); 
-        for (int j = 0; j < CONFIG_CGRA_SHIFTCONSTMEM_SIZE; ++j) {
+        for (int j = 0; j < config_info.shiftconstmemsize; ++j) {
             std::cout << "    shiftconst1[" << j << "]: " << bitstream->BitstreaminfoOfPE[i].shiftconst1[j] << std::endl;
             /* Print other fields similarly */
         }
         OUTS( "  Shiftconstmem2:",ANSI_FG_MAGENTA); 
-        for (int j = 0; j < CONFIG_CGRA_SHIFTCONSTMEM_SIZE; ++j) {
+        for (int j = 0; j < config_info.shiftconstmemsize; ++j) {
             std::cout << "    shiftconst2[" << j << "]: " << bitstream->BitstreaminfoOfPE[i].shiftconst2[j] << std::endl;
             /* Print other fields similarly */
         }
@@ -121,5 +132,30 @@ bool DumpBitStream(BitStreamInfo* bitstream) {
     file.close();
 
     return true;
+}
+void ConstructBitStream(BitStreamInfo* bitstream){
+	bitstream->BitstreaminfoOfPE = new BitStreamInfoPE[config_info.rows * config_info.cols];
+	for(int i = 0; i< config_info.rows;i++){
+		for(int j = 0; j< config_info.cols;j++){
+			bitstream->BitstreaminfoOfPE[i*config_info.rows+j].insts = new CGRAInstruction[config_info.instmemsize];
+			bitstream->BitstreaminfoOfPE[i*config_info.rows+j].const1= new int[config_info.constmemsize];
+			bitstream->BitstreaminfoOfPE[i*config_info.rows+j].const2= new int[config_info.constmemsize];
+			bitstream->BitstreaminfoOfPE[i*config_info.rows+j].shiftconst1= new int[config_info.shiftconstmemsize];
+			bitstream->BitstreaminfoOfPE[i*config_info.rows+j].shiftconst2= new int[config_info.shiftconstmemsize];
+		}
+	}
+}
+void deleteBitStream(BitStreamInfo* bitstream){
+	for( int i = 0; i<config_info.rows;i++){
+		for(int j = 0; j<config_info.cols;j++){
+			delete [] bitstream->BitstreaminfoOfPE[i*config_info.rows+j].insts; 
+			delete [] bitstream->BitstreaminfoOfPE[i*config_info.rows+j].const1;
+			delete [] bitstream->BitstreaminfoOfPE[i*config_info.rows+j].const2;
+			delete [] bitstream->BitstreaminfoOfPE[i*config_info.rows+j].shiftconst1;
+			delete [] bitstream->BitstreaminfoOfPE[i*config_info.rows+j].shiftconst2;
+	}
+	}
+	delete [] bitstream->BitstreaminfoOfPE;
+	delete bitstream;
 }
 

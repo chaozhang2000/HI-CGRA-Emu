@@ -4,6 +4,7 @@
 #include "encode.h"
 #include <cstring>
 #include <cassert>
+#include "config.h"
 
 
 Src CGRANode::getsrcnull(int key){
@@ -116,6 +117,11 @@ CGRANode::CGRANode(int t_id, int t_x, int t_y) {
 		LOAD_STORE_OPTS(M_SUPPORTOPTS_INSERT);
 		datamem = new DataMem(m_id);
 	}
+	InstMem = new CGRANodeInst[config_info.instmemsize];
+	ConstMem1=new int[config_info.constmemsize];
+	ConstMem2 = new int[config_info.constmemsize];
+	ShiftconstMem1 = new int[config_info.shiftconstmemsize];
+	ShiftconstMem2 = new int[config_info.shiftconstmemsize];
 	m_neighbors = NULL;
 	furesult = {0,false};
 getsrc[SRC_NOT_OCCUPY] = &CGRANode::getsrcnull;
@@ -203,16 +209,21 @@ CGRANode::~CGRANode(){
 	if(datamem != NULL){
 		delete datamem;
 	}
+	delete [] InstMem ;
+	delete [] ConstMem1;
+	delete [] ConstMem2;
+	delete [] ShiftconstMem1;
+	delete [] ShiftconstMem2;
 }
 
 void CGRANode::CGRANodeReset(){
 	memset(&Regs, 0, sizeof(CGRANodeRegs));
 	memset(&Regsupdate, 0, sizeof(CGRANodeRegs));
-	memset(InstMem, 0, sizeof(InstMem));
-	memset(ConstMem1, 0, sizeof(ConstMem1));
-	memset(ConstMem2, 0, sizeof(ConstMem2));
-	memset(ShiftconstMem1, 0, sizeof(ShiftconstMem1));
-	memset(ShiftconstMem2, 0, sizeof(ShiftconstMem2));
+	memset(InstMem, 0, config_info.instmemsize*sizeof(CGRAInstruction));
+	memset(ConstMem1, 0, sizeof(int)*config_info.constmemsize);
+	memset(ConstMem2, 0, sizeof(int)*config_info.constmemsize);
+	memset(ShiftconstMem1, 0, sizeof(int)*config_info.shiftconstmemsize);
+	memset(ShiftconstMem2, 0, sizeof(int)*config_info.shiftconstmemsize);
 }
 void CGRANode::CGRANodeUpdate(){
 	memcpy(&Regs,&Regsupdate,sizeof(CGRANodeRegs));
@@ -220,11 +231,11 @@ void CGRANode::CGRANodeUpdate(){
 void CGRANode::CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream){
 	memcpy(&(Regs.ctrlregs),&(PEbitstream->ctrlregs),sizeof(CtrlRegs));
 	memcpy(&(Regsupdate.ctrlregs),&(PEbitstream->ctrlregs),sizeof(CtrlRegs));
-	memcpy(InstMem,PEbitstream->insts,sizeof(InstMem));
-	memcpy(ConstMem1,PEbitstream->const1,sizeof(ConstMem1));
-	memcpy(ConstMem2,PEbitstream->const2,sizeof(ConstMem2));
-	memcpy(ShiftconstMem1,PEbitstream->shiftconst1, sizeof(ShiftconstMem1));
-	memcpy(ShiftconstMem2,PEbitstream->shiftconst2, sizeof(ShiftconstMem2));
+	memcpy(InstMem,PEbitstream->insts,config_info.instmemsize*sizeof(CGRAInstruction));
+	memcpy(ConstMem1,PEbitstream->const1,sizeof(int)*config_info.constmemsize);
+	memcpy(ConstMem2,PEbitstream->const2,sizeof(int)*config_info.constmemsize);
+	memcpy(ShiftconstMem1,PEbitstream->shiftconst1, sizeof(int)*config_info.shiftconstmemsize);
+	memcpy(ShiftconstMem2,PEbitstream->shiftconst2, sizeof(int)*config_info.shiftconstmemsize);
 }
 
 void CGRANode::CGRANodeExecOnecycle(){
