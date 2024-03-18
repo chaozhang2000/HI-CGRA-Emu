@@ -9,8 +9,8 @@
  * finally print the bitstream
  * @return: true if no err happen
  */
-bool DumpBitStream(BitStreamInfo* bitstream) {
-    std::ifstream file("bitstream.bin", std::ios::binary);
+bool DumpBitStream(BitStreamInfo* bitstream,std::string& filename){
+    std::ifstream file(filename, std::ios::binary);
 
     if (!file) {
 				ERRS("Failed to open file.",ANSI_FG_RED);

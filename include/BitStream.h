@@ -1,6 +1,7 @@
 #ifndef BitStream_H
 #define BitStream_H
 #include "generated/autoconf.h"
+#include <string>
 struct CGRALinkInst{
 	int Dkey;
 	int DelayII;
@@ -68,5 +69,5 @@ struct BitStreamInfo{
 
 void ConstructBitStream(BitStreamInfo* bitstream);
 void deleteBitStream(BitStreamInfo* bitstream);
-bool DumpBitStream(BitStreamInfo* bitstream);
+bool DumpBitStream(BitStreamInfo* bitstream,std::string& filename);
 #endif

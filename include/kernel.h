@@ -1,0 +1,1 @@
+/home/zc/HIT-CGRA-Flow/HIT-CGRA-Workbench/kernels/conv3/kernel.h

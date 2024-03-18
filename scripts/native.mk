@@ -1,4 +1,6 @@
-CGRAEMU_EXEC := $(BINARY)
+BITSTREAM ?= ./bitstream.bin
+PARAM ?=./param.json
+CGRAEMU_EXEC := $(BINARY) $(BITSTREAM) $(PARAM)
 run-env: $(BINARY)
 run: run-env
 	$(CGRAEMU_EXEC)
