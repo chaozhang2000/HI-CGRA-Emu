@@ -99,6 +99,7 @@ bool DumpBitStream(BitStreamInfo* bitstream,std::string& filename){
         OUTS( "  CtrlRegs:",ANSI_FG_MAGENTA); 
         std::cout << "    Instnum: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Instnum << std::endl;
         std::cout << "    IInum: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.IInum << std::endl;
+        std::cout << "    Startcyclenum: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Startcyclenum<< std::endl;
         std::cout << "    FinishInstcnt: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.FinishInstcnt << std::endl;
         std::cout << "    FinishIIcnt: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.FinishIIcnt<< std::endl;
         std::cout << "    Constnum1: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Constnum1 << std::endl;
@@ -114,6 +115,7 @@ bool DumpBitStream(BitStreamInfo* bitstream,std::string& filename){
         std::cout << "    I_thread: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.I_thread << std::endl;
         std::cout << "    J_thread: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.J_thread << std::endl;
         std::cout << "    K_thread: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.K_thread << std::endl;
+        std::cout << "    Startcyclecnt: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Startcyclecnt<< std::endl;
         std::cout << "    Instcnt: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Instcnt << std::endl;
         std::cout << "    IIcnt: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.IIcnt << std::endl;
         std::cout << "    Constcnt1: " << bitstream->BitstreaminfoOfPE[i].ctrlregs.Constcnt1 << std::endl;

@@ -296,23 +296,28 @@ void CGRANode::CGRANodeExecOnecycle(){
 				for(int i =0;i<4;i++){
 					crossbarouts[i] = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
 				}
+				/*
 				bool fufinish = furesult.valid | fuinstskip; //furesult.valid is the wire directly out from alu,furesultoutvalid is another wire
 				bool linkfinish[4] ;
 				for(int i = 0; i<4;i++){
 					//linkfinish[i] =linkinstskip[i] | (crossbarouts[i].valid);
 					linkfinish[i] =linkinstskip[i] |crossbarouts[i].valid;
 				}
+				*/
 
 				/*wire crossbar's out to links*/
 				std::cout << "Link srcs:" << std::endl;
 
 				bool canexe;
-				canexe = fufinish & linkfinish[LINK_DIRECTION_TO_N] & linkfinish[LINK_DIRECTION_TO_S]& linkfinish[LINK_DIRECTION_TO_W] & linkfinish[LINK_DIRECTION_TO_E]
-								;
+				canexe =(Regs.ctrlregs.Startcyclecnt >= Regs.ctrlregs.Startcyclenum);//& fufinish & linkfinish[LINK_DIRECTION_TO_N] & linkfinish[LINK_DIRECTION_TO_S]& linkfinish[LINK_DIRECTION_TO_W] & linkfinish[LINK_DIRECTION_TO_E];
 				bool fureg_wen = canexe& furesult.valid & (Inst.FuInst.Fukey != FU_EMPTY) & fuinstnotskip;
 
 				bool linkout_wen[4];
 			  for(int i = 0;i <4;i++){linkout_wen[i]	= canexe & needtosendout[i] &&linkinstnotskip[i];}
+
+
+				/*start cyclecnt update*/
+				Regsupdate.ctrlregs.Startcyclecnt= (Regs.ctrlregs.Startcyclecnt < Regs.ctrlregs.Startcyclenum)?Regs.ctrlregs.Startcyclecnt + 1:Regs.ctrlregs.Startcyclecnt;
 
 				if(canexe){
 				std::cout<<"srcs ready"<<std::endl;

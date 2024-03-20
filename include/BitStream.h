@@ -21,6 +21,7 @@ struct CGRAInstruction {
 struct CtrlRegs {
 	int Instnum;
 	int IInum;
+	int Startcyclenum;
 	int FinishInstcnt;
 	int FinishIIcnt;
 	int Constnum1;
@@ -37,6 +38,7 @@ struct CtrlRegs {
 	int J_thread;
 	int K_thread;
 
+	int Startcyclecnt;
 	int Instcnt;
 	int IIcnt;
 	int Constcnt1;
