@@ -27,6 +27,7 @@ class CGRA {
 		void CGRALoadBitStream(BitStreamInfo* bitstream);
 		void CGRAExecOnecycle();
 		bool IfFinished();
+		DataMem **datamems;
 		/**save the CGRANodes in CGRA
 		 * pointer of nodes[m_rows][m_columns]
 		 */

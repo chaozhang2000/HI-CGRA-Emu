@@ -2,9 +2,12 @@
 #define config_H
 
 #include <string>
+#include <map>
+#include <vector>
+using namespace std;
 class CONFIG_INFO {
 	public:
-	std::string kernel;
+	string kernel;
 	int loopargnum;
 	int rows;
 	int cols;
@@ -23,6 +26,8 @@ class CONFIG_INFO {
 	int loop2inc;
 	int loop2end;
 	int maxsimcycle;
+	int datamemnum;
+	map<int,vector<int>> datamemaccess;
 	bool getconfig(std::string& filename);
 };
 extern CONFIG_INFO config_info;

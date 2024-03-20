@@ -86,11 +86,13 @@ Src CGRANode::mulopt(Src src1, Src src2){
 				return {src1.data * src2.data,src1.valid&& src2.valid};
 }
 Src CGRANode::loadopt(Src src1, Src src2){
+				assert(datamem!=NULL);
 				std::cout<<"exec load"<<std::endl;
 				if(src1.valid && src2.valid)return datamem->fureadData(src1.data);
 				else return {0,false};
 }
 Src CGRANode::storeopt(Src src1, Src src2){
+				assert(datamem!=NULL);
 				std::cout<<"exec store"<<std::endl;
 				//datamem->writeData(src2.data,src1.data);
 				return {0,src1.valid&&src2.valid};
@@ -113,10 +115,6 @@ CGRANode::CGRANode(int t_id, int t_x, int t_y) {
   m_x = t_x;
   m_y = t_y;
 	COMMON_OPTS(M_SUPPORTOPTS_INSERT);
-	if(m_hasDataMem){
-		LOAD_STORE_OPTS(M_SUPPORTOPTS_INSERT);
-		datamem = new DataMem(m_id);
-	}
 	InstMem = new CGRANodeInst[config_info.instmemsize];
 	ConstMem1=new int[config_info.constmemsize];
 	ConstMem2 = new int[config_info.constmemsize];
@@ -206,9 +204,6 @@ CGRANode::~CGRANode(){
 	if(m_neighbors != NULL){
 		delete m_neighbors;
 	}	
-	if(datamem != NULL){
-		delete datamem;
-	}
 	delete [] InstMem ;
 	delete [] ConstMem1;
 	delete [] ConstMem2;

@@ -41,6 +41,12 @@ bool CONFIG_INFO::getconfig(std::string& filename)
 	loop2inc = configs["loop2inc"];
 	loop2end = configs["loop2end"];
 	maxsimcycle= configs["maxsimcycle"];
+	datamemnum = configs["datamemnum"];
+	for(auto &item: configs["datamemaccess"].items()){
+		int key = std::stoi(item.key());
+		vector<int> values = item.value().get<vector<int>>();
+		datamemaccess[key] = values;
+	}
 				return true;
 			}
 }

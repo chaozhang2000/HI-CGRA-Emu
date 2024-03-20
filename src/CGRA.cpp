@@ -1,7 +1,8 @@
 #include "CGRA.h"
 #include "utils.h"
-#include "utils.h"
 #include "generated/autoconf.h"
+#include "DataMem.h"
+#include "config.h"
 
 /**
  * TODO: now the cgra is connect in a specific way,and every Node can support all opts, the conection and the opts should be defined by users.
@@ -84,6 +85,16 @@ CGRA::CGRA(int t_rows,int t_columns){
 			}
     }
   }
+	//3. add datamems
+	datamems =new DataMem* [config_info.datamemnum];
+	for(int i = 0; i< config_info.datamemnum ;i ++){
+		 datamems[i] = new DataMem(i);
+		 for(unsigned long j = 0;j< config_info.datamemaccess[i].size();j++){
+			int row = config_info.datamemaccess[i][j] / t_columns;
+			int col = config_info.datamemaccess[i][j] % t_columns;
+			nodes[row][col]->datamem = datamems[i];
+		 }
+	}
  	//3. print CGRA information if needed.
 #ifdef CONFIG_CGRA_INFO
 	//dump CGRA
@@ -146,6 +157,10 @@ CGRA::~CGRA(){
 	for (int i=0;i<m_rows;i++){
 		delete[] nodes[i];
 	}
+	for(int i = 0; i< config_info.datamemnum ;i ++){
+		 delete datamems[i];
+	}
+	delete[] datamems;
 	delete[] nodes;
 	delete[] links;
 }
