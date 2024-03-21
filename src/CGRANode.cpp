@@ -350,7 +350,6 @@ void CGRANode::CGRANodeExecOnecycle(){
 					}
 					if(canexenum == 0){
 				  		furesult = (this->*fuopts[FU_EMPTY])(fusrc1,fusrc2);
-				  		furesult.valid = (fusrc1.valid && fusrc2.valid); //&& fuinstnotskip;
 					}
 					pendingopts.erase(remove_if(pendingopts.begin(),pendingopts.end(),[]( Opt t){return t.latency == 0;}),pendingopts.end());
 					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
