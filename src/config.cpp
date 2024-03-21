@@ -42,6 +42,9 @@ bool CONFIG_INFO::getconfig(std::string& filename)
 	loop2end = configs["loop2end"];
 	maxsimcycle= configs["maxsimcycle"];
 	datamemnum = configs["datamemnum"];
+	for(auto& opt : configs["optlatency"].items()){
+		execLatency[opt.key()] = opt.value();
+	}
 	for(auto &item: configs["datamemaccess"].items()){
 		int key = std::stoi(item.key());
 		vector<int> values = item.value().get<vector<int>>();

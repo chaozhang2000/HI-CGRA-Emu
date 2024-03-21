@@ -26,6 +26,7 @@ class CONFIG_INFO {
 	int loop2inc;
 	int loop2end;
 	int maxsimcycle;
+	map<string,int> execLatency;	
 	int datamemnum;
 	map<int,vector<int>> datamemaccess;
 	bool getconfig(std::string& filename);

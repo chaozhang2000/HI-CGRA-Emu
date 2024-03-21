@@ -179,7 +179,7 @@ void CGRA::CGRAReset(){
 void CGRA::CGRALoadBitStream(BitStreamInfo* bitstream){
   for (int i=0; i<m_rows; ++i) {
     for (int j=0; j<m_columns; ++j) {
-			nodes[i][j]->CGRANodeLoadBitStream(&(bitstream->BitstreaminfoOfPE[m_rows*i+j]));
+			nodes[i][j]->CGRANodeLoadBitStream(&(bitstream->BitstreaminfoOfPE[m_columns*i+j]));
     }
   }
 }
@@ -207,4 +207,15 @@ bool CGRA::IfFinished(){
     }
 	}
 	return true;
+}
+
+void CGRA::CGRAfinish_pendingopts(){
+  for (int i=0; i<m_rows; ++i) {
+    for (int j=0; j<m_columns; ++j) {
+			while(nodes[i][j]->pendingopts.size() != 0){
+				nodes[i][j] -> CGRANodefinish_pendingopts();
+			}
+    }
+	}
+	
 }

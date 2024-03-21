@@ -139,22 +139,22 @@ void ConstructBitStream(BitStreamInfo* bitstream){
 	bitstream->BitstreaminfoOfPE = new BitStreamInfoPE[config_info.rows * config_info.cols];
 	for(int i = 0; i< config_info.rows;i++){
 		for(int j = 0; j< config_info.cols;j++){
-			bitstream->BitstreaminfoOfPE[i*config_info.rows+j].insts = new CGRAInstruction[config_info.instmemsize];
-			bitstream->BitstreaminfoOfPE[i*config_info.rows+j].const1= new int[config_info.constmemsize];
-			bitstream->BitstreaminfoOfPE[i*config_info.rows+j].const2= new int[config_info.constmemsize];
-			bitstream->BitstreaminfoOfPE[i*config_info.rows+j].shiftconst1= new int[config_info.shiftconstmemsize];
-			bitstream->BitstreaminfoOfPE[i*config_info.rows+j].shiftconst2= new int[config_info.shiftconstmemsize];
+			bitstream->BitstreaminfoOfPE[i*config_info.cols+j].insts = new CGRAInstruction[config_info.instmemsize];
+			bitstream->BitstreaminfoOfPE[i*config_info.cols+j].const1= new int[config_info.constmemsize];
+			bitstream->BitstreaminfoOfPE[i*config_info.cols+j].const2= new int[config_info.constmemsize];
+			bitstream->BitstreaminfoOfPE[i*config_info.cols+j].shiftconst1= new int[config_info.shiftconstmemsize];
+			bitstream->BitstreaminfoOfPE[i*config_info.cols+j].shiftconst2= new int[config_info.shiftconstmemsize];
 		}
 	}
 }
 void deleteBitStream(BitStreamInfo* bitstream){
 	for( int i = 0; i<config_info.rows;i++){
 		for(int j = 0; j<config_info.cols;j++){
-			delete [] bitstream->BitstreaminfoOfPE[i*config_info.rows+j].insts; 
-			delete [] bitstream->BitstreaminfoOfPE[i*config_info.rows+j].const1;
-			delete [] bitstream->BitstreaminfoOfPE[i*config_info.rows+j].const2;
-			delete [] bitstream->BitstreaminfoOfPE[i*config_info.rows+j].shiftconst1;
-			delete [] bitstream->BitstreaminfoOfPE[i*config_info.rows+j].shiftconst2;
+			delete [] bitstream->BitstreaminfoOfPE[i*config_info.cols+j].insts; 
+			delete [] bitstream->BitstreaminfoOfPE[i*config_info.cols+j].const1;
+			delete [] bitstream->BitstreaminfoOfPE[i*config_info.cols+j].const2;
+			delete [] bitstream->BitstreaminfoOfPE[i*config_info.cols+j].shiftconst1;
+			delete [] bitstream->BitstreaminfoOfPE[i*config_info.cols+j].shiftconst2;
 	}
 	}
 	delete [] bitstream->BitstreaminfoOfPE;

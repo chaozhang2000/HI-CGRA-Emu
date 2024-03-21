@@ -4,6 +4,7 @@
 #include "kernel.h"
 #include <iostream>
 #include "config.h"
+#include "encode.h"
 
 int main(int argc,char* argv[]){
 
@@ -21,6 +22,8 @@ int main(int argc,char* argv[]){
 	bool bitstreamNoErr = DumpBitStream(bitstream,bitstreamfilename);
 	if(!bitstreamNoErr){delete bitstream;return 1;}
 
+  init_optcode_name_map();
+
 	CGRA* cgra = new CGRA(config_info.rows,config_info.cols);
 
 	cgra->CGRAReset();
@@ -37,6 +40,7 @@ int main(int argc,char* argv[]){
 	std::cout<<"----------------cycle"<<cycle << "------------"<<std::endl;
 	cgra->CGRAExecOnecycle();
 	if (cgra->IfFinished()){
+		cgra->CGRAfinish_pendingopts();
 		break;
 	}
 	}

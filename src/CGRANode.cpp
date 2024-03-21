@@ -5,8 +5,9 @@
 #include <cstring>
 #include <cassert>
 #include "config.h"
+#include <algorithm>
 
-
+string encode_optname_map[30];
 Src CGRANode::getsrcnull(int key){
 	Src src = {0,true};
 	return src;
@@ -75,7 +76,7 @@ Src CGRANode::getsrcfromFu(int key){
 }
 Src CGRANode::emptyopt(Src src1, Src src2){
 				std::cout<<"empty opt"<<std::endl;
-				return {0,true};
+				return {0,false};
 }
 Src CGRANode::addopt(Src src1, Src src2){
 				std::cout<<"exec add"<<std::endl;
@@ -94,7 +95,7 @@ Src CGRANode::loadopt(Src src1, Src src2){
 Src CGRANode::storeopt(Src src1, Src src2){
 				assert(datamem!=NULL);
 				std::cout<<"exec store"<<std::endl;
-				//datamem->writeData(src2.data,src1.data);
+				datamem->writeData(src2.data,src1.data);
 				return {0,src1.valid&&src2.valid};
 }
 Src CGRANode::shlopt(Src src1,Src src2){
@@ -133,12 +134,12 @@ getsrc[SRC_OCCUPY_FROM_LOOP0] = &CGRANode::getsrcfromloop0reg;
 getsrc[SRC_OCCUPY_FROM_LOOP1] = &CGRANode::getsrcfromloop1reg;
 getsrc[SRC_OCCUPY_FROM_LOOP2] = &CGRANode::getsrcfromloop2reg;
 fuopts[FU_EMPTY] = &CGRANode::emptyopt;
-fuopts[FU_MUL] = &CGRANode::mulopt;
-fuopts[FU_ADD] = &CGRANode::addopt;
-fuopts[FU_GETELEMENTPTR] = &CGRANode::addopt;
-fuopts[FU_LOAD] = &CGRANode::loadopt;
-fuopts[FU_STORE] = &CGRANode::storeopt;
-fuopts[FU_SHL] = &CGRANode::shlopt;
+fuopts[FU_mul] = &CGRANode::mulopt;
+fuopts[FU_add] = &CGRANode::addopt;
+fuopts[FU_getelementptr] = &CGRANode::addopt;
+fuopts[FU_load] = &CGRANode::loadopt;
+fuopts[FU_store] = &CGRANode::storeopt;
+fuopts[FU_shl] = &CGRANode::shlopt;
 
 getsrclink[LINK_NOT_OCCUPY] = &CGRANode::getsrcnull;
 getsrclink[LINK_OCCUPY_EMPTY] = &CGRANode::getsrcnull;
@@ -257,6 +258,8 @@ void CGRANode::CGRANodeExecOnecycle(){
 					}
             std::cout << std::endl;
 
+				furesult.data = 0;
+				furesult.valid = 0;
 				/* Decode */
 				bool const1 =Inst.FuInst.Src1key == SRC_OCCUPY_FROM_CONST_MEM;
 				bool const2 =Inst.FuInst.Src2key == SRC_OCCUPY_FROM_CONST_MEM;
@@ -284,13 +287,14 @@ void CGRANode::CGRANodeExecOnecycle(){
 				fusrc2 = (this->*getsrc[Inst.FuInst.Src2key])(1);
 				fusrc1.data =Inst.FuInst.Shiftconst1 ? fusrc1.data + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1]:fusrc1.data;
 				fusrc2.data =Inst.FuInst.Shiftconst2 ? fusrc2.data + ShiftconstMem2[Regs.ctrlregs.Shiftconstcnt2]:fusrc2.data;
-				furesult = (this->*fuopts[Inst.FuInst.Fukey])(fusrc1,fusrc2);
-				furesult.valid = (fusrc1.valid && fusrc2.valid); //&& fuinstnotskip;
+
+				 //furesult = (this->*fuopts[Inst.FuInst.Fukey])(fusrc1,fusrc2);
+				//furesult.valid = (fusrc1.valid && fusrc2.valid); //&& fuinstnotskip;
 																												 //
-				Src crossbarouts[4];
-				for(int i =0;i<4;i++){
-					crossbarouts[i] = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
-				}
+				//Src crossbarouts[4];
+				//for(int i =0;i<4;i++){
+				//	crossbarouts[i] = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
+				//}
 				/*
 				bool fufinish = furesult.valid | fuinstskip; //furesult.valid is the wire directly out from alu,furesultoutvalid is another wire
 				bool linkfinish[4] ;
@@ -305,10 +309,7 @@ void CGRANode::CGRANodeExecOnecycle(){
 
 				bool canexe;
 				canexe =(Regs.ctrlregs.Startcyclecnt >= Regs.ctrlregs.Startcyclenum);//& fufinish & linkfinish[LINK_DIRECTION_TO_N] & linkfinish[LINK_DIRECTION_TO_S]& linkfinish[LINK_DIRECTION_TO_W] & linkfinish[LINK_DIRECTION_TO_E];
-				bool fureg_wen = canexe& furesult.valid & (Inst.FuInst.Fukey != FU_EMPTY) & fuinstnotskip;
 
-				bool linkout_wen[4];
-			  for(int i = 0;i <4;i++){linkout_wen[i]	= canexe & needtosendout[i] &&linkinstnotskip[i];}
 
 
 				/*start cyclecnt update*/
@@ -323,15 +324,41 @@ void CGRANode::CGRANodeExecOnecycle(){
 				std::cout<<"not exec this cycle"<<std::endl;
 				std::cout<<"fusrc1.valid:" <<fusrc1.valid<<std::endl;
 				std::cout<<"fusrc2.valid:" <<fusrc2.valid<<std::endl;
-				std::cout<<"crossbaroutsN.valid:" <<crossbarouts[LINK_DIRECTION_TO_N].valid<<std::endl;
-				std::cout<<"crossbaroutsS.valid:" <<crossbarouts[LINK_DIRECTION_TO_S].valid<<std::endl;
-				std::cout<<"crossbaroutsW.valid:" <<crossbarouts[LINK_DIRECTION_TO_W].valid<<std::endl;
-				std::cout<<"crossbaroutsE.valid:" <<crossbarouts[LINK_DIRECTION_TO_E].valid<<std::endl;
 				std::cout << std::endl;
 				}
 
 				/*exe update the state in CGRANode and Link*/
 				if(canexe){
+					auto it = config_info.execLatency.find(opt_encode_name_map[Inst.FuInst.Fukey]);
+					int latency = it != config_info.execLatency.end() ? it->second:0;
+					Opt opt;
+					opt.latency = latency; opt.key = Inst.FuInst.Fukey;opt.src1 = fusrc1; opt.src2 = fusrc2;
+					if(Inst.FuInst.Fukey != FU_EMPTY && fuinstnotskip)pendingopts.push_back(opt);
+					int canexenum = 0;
+					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
+						if((*it).latency ==  0) canexenum ++;
+					}
+					assert(canexenum <=1);
+					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
+						if((*it).latency == 0){
+							int fukey =(*it).key ;
+							Src src1 = (*it).src1;
+							Src src2 = (*it).src2;
+				  		furesult = (this->*fuopts[fukey])(src1,src2);
+				  		furesult.valid = (src1.valid && src2.valid); //&& fuinstnotskip;
+						}
+					}
+					if(canexenum == 0){
+				  		furesult = (this->*fuopts[FU_EMPTY])(fusrc1,fusrc2);
+				  		furesult.valid = (fusrc1.valid && fusrc2.valid); //&& fuinstnotskip;
+					}
+					pendingopts.erase(remove_if(pendingopts.begin(),pendingopts.end(),[]( Opt t){return t.latency == 0;}),pendingopts.end());
+					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
+						if((*it).latency > 0){
+							(*it).latency --;
+						}
+					}
+
 					/*fuexe if delay or finish do nothing*/
 					std::cout<<"Fu calculate result:"<<std::endl;
 					if(Regs.ctrlregs.IIcnt >= Inst.FuInst.FudelayII && Regs.ctrlregs.IIcnt < Regs.ctrlregs.IInum + Inst.FuInst.FudelayII){
@@ -395,19 +422,28 @@ void CGRANode::CGRANodeExecOnecycle(){
 					PRINT_STATE_UPDATE("ctrlregs.Finish",Regs.ctrlregs.Finish,Regsupdate.ctrlregs.Finish);
 					
 					/*fureg update*/
+					bool fureg_wen = furesult.valid;
 					if(fureg_wen) {Regsupdate.fureg = furesult.data;
 					PRINT_STATE_UPDATE("fureg",Regs.fureg,Regsupdate.fureg);
 					}
 
 #undef PRINT_STATE_UPDATE
-					/*store*/
-					if(Inst.FuInst.Fukey ==FU_STORE){datamem->writeData(fusrc2.data,fusrc1.data);}
 
 					std::cout<<std::endl;
 
 
+					Src crossbarouts[4];
+					for(int i =0;i<4;i++){
+					crossbarouts[i] = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
+					}
 					/*link data update*/
+					bool linkout_wen[4];
+			  	for(int i = 0;i <4;i++){linkout_wen[i]	= needtosendout[i] &&linkinstnotskip[i];}
 					std::cout<<"Send data to Link:"<<std::endl;
+					std::cout<<"crossbaroutsN.valid:" <<crossbarouts[LINK_DIRECTION_TO_N].valid<<std::endl;
+					std::cout<<"crossbaroutsS.valid:" <<crossbarouts[LINK_DIRECTION_TO_S].valid<<std::endl;
+					std::cout<<"crossbaroutsW.valid:" <<crossbarouts[LINK_DIRECTION_TO_W].valid<<std::endl;
+					std::cout<<"crossbaroutsE.valid:" <<crossbarouts[LINK_DIRECTION_TO_E].valid<<std::endl;
 					for(int i = 0; i< 4; ++ i){
 						if(linkout_wen[i]){
 							outLinks[i]->Regsupdate.data = crossbarouts[i].data;
@@ -418,4 +454,25 @@ void CGRANode::CGRANodeExecOnecycle(){
 }
 bool CGRANode::CGRANodeFinish(){
 	return Regs.ctrlregs.Finish;
+}
+/*finsih pending opts*/
+void CGRANode::CGRANodefinish_pendingopts(){
+	std::cout<<"CGRANode:"<<m_id<<" finish pending opts\n";
+	if(pendingopts.size() > 0){
+					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
+						if((*it).latency == 0){
+							int fukey =(*it).key ;
+							Src src1 = (*it).src1;
+							Src src2 = (*it).src2;
+				  		furesult = (this->*fuopts[fukey])(src1,src2);
+				  		furesult.valid = (src1.valid && src2.valid); //&& fuinstnotskip;
+						}
+					}
+					pendingopts.erase(remove_if(pendingopts.begin(),pendingopts.end(),[]( Opt t){return t.latency == 0;}),pendingopts.end());
+					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
+						if((*it).latency > 0){
+							(*it).latency --;
+						}
+					}
+	}
 }

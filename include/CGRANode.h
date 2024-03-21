@@ -16,6 +16,12 @@ struct CGRANodeRegs{
 	CtrlRegs ctrlregs;
 	int fureg;
 };
+struct Opt{
+	int latency;
+	int key;
+	Src src1;
+	Src src2;
+};
 class CGRANode{
 
   private:
@@ -81,11 +87,13 @@ class CGRANode{
 
   public:
 		DataMem* datamem;
+		list<Opt> pendingopts;
 		void CGRANodeReset();
 		void CGRANodeUpdate();
 		void CGRANodeLoadBitStream(BitStreamInfoPE* PEbitstream);
 		void CGRANodeExecOnecycle();
 		bool CGRANodeFinish();
+		void CGRANodefinish_pendingopts();
 		/**The constructor function of class CGRANode
 		 * this function init CGRANode's ID,x and y according the params,other var is init by default value.
 		 * all opts like load store add,mul,shift and so on is turned on by default
