@@ -23,49 +23,49 @@ Src CGRANode::getsrcformconstmem(int key){
 	Src src;
 	src.data = key == 0 ? ConstMem1[Regs.ctrlregs.Constcnt1]:ConstMem2[Regs.ctrlregs.Constcnt2];
 	src.valid = true;
-	std::cout<<"src"<<key+1<<"const = "<<src.data<<std::endl;
+	//std::cout<<"src"<<key+1<<"const = "<<src.data<<std::endl;
 	return src;
 }
 Src CGRANode::getsrcfromNlink(int key){
 	Src src = {0,false};
 	src = inLinks[LINK_DIRECTION_TO_N]->getSrc();
-	std::cout<<"src"<<key+1<<"linkS_in = "<<src.data<<endl;
+	//std::cout<<"src"<<key+1<<"linkS_in = "<<src.data<<endl;
 	return src;
 }	
 Src CGRANode::getsrcfromSlink(int key){
 	Src src = {0,false};
 	src = inLinks[LINK_DIRECTION_TO_S]->getSrc();
-	std::cout<<"src"<<key+1<<"linkN_in = "<<src.data<<endl;
+	//std::cout<<"src"<<key+1<<"linkN_in = "<<src.data<<endl;
 	return src;
 }
 Src CGRANode::getsrcfromWlink(int key){
 	Src src = {0,false};
 	src = inLinks[LINK_DIRECTION_TO_W]->getSrc();
-	std::cout<<"src"<<key+1<<"linkE_in = "<<src.data<<endl;
+	//std::cout<<"src"<<key+1<<"linkE_in = "<<src.data<<endl;
 	return src;
 }
 Src CGRANode::getsrcfromElink(int key){
 	Src src = {0,false};
 	src = inLinks[LINK_DIRECTION_TO_E]->getSrc();
-	std::cout<<"src"<<key+1<<"linkW_in = "<<src.data<<endl;
+	//std::cout<<"src"<<key+1<<"linkW_in = "<<src.data<<endl;
 	return src;
 }
 Src CGRANode::getsrcfromloop0reg(int key){
-	std::cout<<"src"<<key+1<<"loop0k = "<<Regs.ctrlregs.K<<endl;
+	//std::cout<<"src"<<key+1<<"loop0k = "<<Regs.ctrlregs.K<<endl;
 	Src src;
 	src.data = Regs.ctrlregs.K;
 	src.valid = true;
 	return src;
 }
 Src CGRANode::getsrcfromloop1reg(int key){
-	std::cout<<"src"<<key+1<<"loop1j = "<<Regs.ctrlregs.J<<endl;
+	//std::cout<<"src"<<key+1<<"loop1j = "<<Regs.ctrlregs.J<<endl;
 	Src src;
 	src.data = Regs.ctrlregs.J;
 	src.valid = true;
 	return src;
 }
 Src CGRANode::getsrcfromloop2reg(int key){
-	std::cout<<"src"<<key+1<<"loop2i = "<<Regs.ctrlregs.I<<endl;
+	//std::cout<<"src"<<key+1<<"loop2i = "<<Regs.ctrlregs.I<<endl;
 	Src src;
 	src.data = Regs.ctrlregs.I;
 	src.valid = true;
@@ -260,17 +260,15 @@ void CGRANode::CGRANodeExecOnecycle(){
 
 				furesult.data = 0;
 				furesult.valid = 0;
+				Src fusrc1 = {0,false};
+				Src fusrc2 = {0,false};
 				/* Decode */
 				bool const1 =Inst.FuInst.Src1key == SRC_OCCUPY_FROM_CONST_MEM;
 				bool const2 =Inst.FuInst.Src2key == SRC_OCCUPY_FROM_CONST_MEM;
 				bool shiftconst1 =(Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst1;
 				bool shiftconst2 =(Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst2;
-				bool needtosendout[4];
-			  for(int i = 0;i <4;i++){needtosendout[i]	= (Inst.LinkInsts[i].Dkey !=LINK_NOT_OCCUPY && Inst.LinkInsts[i].Dkey !=LINK_OCCUPY_EMPTY);}
-
-				/*fu out and crossbar out*/
-				std::cout << "Check if srcs ready:" << std::endl;
-				std::cout << "Fu srcs:" << std::endl;
+				bool linkneedtosendout[4];
+			  for(int i = 0;i <4;i++){linkneedtosendout[i]	= (Inst.LinkInsts[i].Dkey !=LINK_NOT_OCCUPY && Inst.LinkInsts[i].Dkey !=LINK_OCCUPY_EMPTY);}
 				bool fuinstskip = Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.FuInst.FudelayII;
 				bool fuinstnotskip = !fuinstskip;
 				bool linkinstskip[4];
@@ -279,61 +277,42 @@ void CGRANode::CGRANodeExecOnecycle(){
 					linkinstskip[i] = Regs.ctrlregs.IIcnt < Inst.LinkInsts[i].DelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.LinkInsts[i].DelayII;
 					linkinstnotskip[i] = !linkinstskip[i];
 				}
-				/*def wire src1 and src2 into fu*/
-				Src fusrc1 = {0,false};
-				Src fusrc2 = {0,false};
+				bool canexe;
+				canexe =(Regs.ctrlregs.Startcyclecnt >= Regs.ctrlregs.Startcyclenum);
+				/* Decode print */
+#define DECODES_SIGNALS(f) \
+  f(const1) f(const2) f(shiftconst1) f(linkneedtosendout[0]) f(linkneedtosendout[1]) f(linkneedtosendout[2]) f(linkneedtosendout[3]) f(fuinstskip) f(linkinstskip[0]) f(linkinstskip[1]) f(linkinstskip[2]) f(linkinstskip[3]) f(canexe)
+#define PRINT_DECODE(name)\
+					std::cout<<#name<<" : "<<name<<std::endl;
+				std::cout << "Decode:"<<std::endl;
+				DECODES_SIGNALS(PRINT_DECODE)
+				std::cout <<std::endl;
+#undef PRINT_DECODE
+#undef DECODES_SIGNALS
+
 				/*wire src1 and src2 get data and valid from linkin or other srcs */
 				fusrc1 = (this->*getsrc[Inst.FuInst.Src1key])(0);
 				fusrc2 = (this->*getsrc[Inst.FuInst.Src2key])(1);
 				fusrc1.data =Inst.FuInst.Shiftconst1 ? fusrc1.data + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1]:fusrc1.data;
 				fusrc2.data =Inst.FuInst.Shiftconst2 ? fusrc2.data + ShiftconstMem2[Regs.ctrlregs.Shiftconstcnt2]:fusrc2.data;
 
-				 //furesult = (this->*fuopts[Inst.FuInst.Fukey])(fusrc1,fusrc2);
-				//furesult.valid = (fusrc1.valid && fusrc2.valid); //&& fuinstnotskip;
-																												 //
-				//Src crossbarouts[4];
-				//for(int i =0;i<4;i++){
-				//	crossbarouts[i] = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
-				//}
-				/*
-				bool fufinish = furesult.valid | fuinstskip; //furesult.valid is the wire directly out from alu,furesultoutvalid is another wire
-				bool linkfinish[4] ;
-				for(int i = 0; i<4;i++){
-					//linkfinish[i] =linkinstskip[i] | (crossbarouts[i].valid);
-					linkfinish[i] =linkinstskip[i] |crossbarouts[i].valid;
-				}
-				*/
-
-				/*wire crossbar's out to links*/
-				std::cout << "Link srcs:" << std::endl;
-
-				bool canexe;
-				canexe =(Regs.ctrlregs.Startcyclecnt >= Regs.ctrlregs.Startcyclenum);//& fufinish & linkfinish[LINK_DIRECTION_TO_N] & linkfinish[LINK_DIRECTION_TO_S]& linkfinish[LINK_DIRECTION_TO_W] & linkfinish[LINK_DIRECTION_TO_E];
-
-
-
 				/*start cyclecnt update*/
 				Regsupdate.ctrlregs.Startcyclecnt= (Regs.ctrlregs.Startcyclecnt < Regs.ctrlregs.Startcyclenum)?Regs.ctrlregs.Startcyclecnt + 1:Regs.ctrlregs.Startcyclecnt;
 
-				if(canexe){
-				std::cout<<"srcs ready"<<std::endl;
-				std::cout << std::endl;
-				}
-				else{
-				std::cout <<"srcs not ready" << std::endl;
-				std::cout<<"not exec this cycle"<<std::endl;
-				std::cout<<"fusrc1.valid:" <<fusrc1.valid<<std::endl;
-				std::cout<<"fusrc2.valid:" <<fusrc2.valid<<std::endl;
-				std::cout << std::endl;
-				}
-
 				/*exe update the state in CGRANode and Link*/
 				if(canexe){
+					std::cout << "Fu:" << std::endl;
+					std::cout << "src1: data:" <<fusrc1.data<<" valid:"<<fusrc1.valid<< std::endl;
+					std::cout << "src2: data:" <<fusrc2.data<<" valid:"<<fusrc2.valid<< std::endl;
+					/*fu input*/
 					auto it = config_info.execLatency.find(opt_encode_name_map[Inst.FuInst.Fukey]);
 					int latency = it != config_info.execLatency.end() ? it->second:0;
 					Opt opt;
 					opt.latency = latency; opt.key = Inst.FuInst.Fukey;opt.src1 = fusrc1; opt.src2 = fusrc2;
-					if(Inst.FuInst.Fukey != FU_EMPTY && fuinstnotskip)pendingopts.push_back(opt);
+					if(Inst.FuInst.Fukey != FU_EMPTY && fuinstnotskip){
+									pendingopts.push_back(opt);
+					std::cout <<opt_encode_name_map[Inst.FuInst.Fukey]<<" start and will generate result "<<latency<<" cycles latter"<<std::endl;
+					}
 					int canexenum = 0;
 					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
 						if((*it).latency ==  0) canexenum ++;
@@ -346,10 +325,14 @@ void CGRANode::CGRANodeExecOnecycle(){
 							Src src2 = (*it).src2;
 				  		furesult = (this->*fuopts[fukey])(src1,src2);
 				  		furesult.valid = (src1.valid && src2.valid); //&& fuinstnotskip;
+							std::cout <<opt_encode_name_map[fukey]<<" generate result."<<std::endl;
+							std::cout<<"furesult.data = "<<furesult.data<<" furesult.valid = "<<furesult.valid<<std::endl;
 						}
 					}
 					if(canexenum == 0){
 				  		furesult = (this->*fuopts[FU_EMPTY])(fusrc1,fusrc2);
+							std::cout <<opt_encode_name_map[FU_EMPTY]<<" generate result."<<std::endl;
+							std::cout<<"furesult.data = "<<furesult.data<<" furesult.valid = "<<furesult.valid<<std::endl;
 					}
 					pendingopts.erase(remove_if(pendingopts.begin(),pendingopts.end(),[]( Opt t){return t.latency == 0;}),pendingopts.end());
 					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
@@ -359,92 +342,79 @@ void CGRANode::CGRANodeExecOnecycle(){
 					}
 
 					/*fuexe if delay or finish do nothing*/
-					std::cout<<"Fu calculate result:"<<std::endl;
 					if(Regs.ctrlregs.IIcnt >= Inst.FuInst.FudelayII && Regs.ctrlregs.IIcnt < Regs.ctrlregs.IInum + Inst.FuInst.FudelayII){
-						std::cout << "fusrc1 = "<<fusrc1.data<<" valid = "<<fusrc1.valid<<std::endl;
-						std::cout << "fusrc2 = "<<fusrc2.data<<" valid = "<<fusrc2.valid<<std::endl;
-						std::cout << "furesult: data = "<<furesult.data <<" valid = "<<furesult.valid<< std::endl;
+									;
 					}
 					else if(Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII){
-						std::cout<<"fu do nothing because of delay"<<std::endl;
+						std::cout<<"fu exe empty because of delay"<<std::endl;
 					}else{
-						std::cout<<"fu do nothing because of finish"<<std::endl;
+						std::cout<<"fu exe empty because of finish"<<std::endl;
 					}
 					std::cout << std::endl;
 
-					std::cout<<"Update state in PE:(current state-> next state)"<<endl;
-					//update CGRANode state
-#define PRINT_STATE_UPDATE(name,oldValue, newValue)\
-					std::cout<<name<<" : "<<oldValue<<" -> "<<newValue<<std::endl;
+					/* update CGRANode state*/
 					/*Instcnt update*/
 					Regsupdate.ctrlregs.Instcnt = Regs.ctrlregs.Instcnt == Regs.ctrlregs.Instnum -1 ?0:Regs.ctrlregs.Instcnt + 1;
-					PRINT_STATE_UPDATE("ctrlregs.Instcnt",Regs.ctrlregs.Instcnt,Regsupdate.ctrlregs.Instcnt);
 					/*IIcnt update*/
 					Regsupdate.ctrlregs.IIcnt = Regs.ctrlregs.Instcnt == Regs.ctrlregs.Instnum -1 ? Regs.ctrlregs.IIcnt +1: Regs.ctrlregs.IIcnt;
-					PRINT_STATE_UPDATE("ctrlregs.IIcnt",Regs.ctrlregs.IIcnt,Regsupdate.ctrlregs.IIcnt);
 					/*Constcnt1 update*/
 					if(const1)Regsupdate.ctrlregs.Constcnt1 = Regs.ctrlregs.Constcnt1== Regs.ctrlregs.Constnum1 -1 ?0:Regs.ctrlregs.Constcnt1 + 1 ; 
-					PRINT_STATE_UPDATE("ctrlregs.Constcnt1",Regs.ctrlregs.Constcnt1,Regsupdate.ctrlregs.Constcnt1);
 					/*Constcnt2 update*/
 					if(const2)Regsupdate.ctrlregs.Constcnt2 = Regs.ctrlregs.Constcnt2== Regs.ctrlregs.Constnum2 -1 ?0:Regs.ctrlregs.Constcnt2 + 1; 
-					PRINT_STATE_UPDATE("ctrlregs.Constcnt2",Regs.ctrlregs.Constcnt2,Regsupdate.ctrlregs.Constcnt2);
 					/*Shiftconstcnt1 update*/
 					if(shiftconst1)Regsupdate.ctrlregs.Shiftconstcnt1 = Regs.ctrlregs.Shiftconstcnt1== Regs.ctrlregs.Shiftconstnum1 -1 ?0:Regs.ctrlregs.Shiftconstcnt1 + 1; 
-					PRINT_STATE_UPDATE("ctrlregs.Shiftconstcnt1",Regs.ctrlregs.Shiftconstcnt1,Regsupdate.ctrlregs.Shiftconstcnt1);
 					/*Constcnt2 update*/
 					if(shiftconst2)Regsupdate.ctrlregs.Shiftconstcnt2 = Regs.ctrlregs.Shiftconstcnt2== Regs.ctrlregs.Shiftconstnum2 -1 ? 0:Regs.ctrlregs.Shiftconstcnt2 + 1; 
-					PRINT_STATE_UPDATE("ctrlregs.Shiftconstcnt2",Regs.ctrlregs.Shiftconstcnt2,Regsupdate.ctrlregs.Shiftconstcnt2);
 
 					/*K update*/
 					bool Kchange = Regs.ctrlregs.Instcnt == Regs.ctrlregs.Instnum -1;
 					bool Kinit = (Regs.ctrlregs.K_inc>0 ? Regs.ctrlregs.K + Regs.ctrlregs.K_inc>=Regs.ctrlregs.K_thread:Regs.ctrlregs.K + Regs.ctrlregs.K_inc<=Regs.ctrlregs.K_thread);
 					int Knew = Kinit ? Regs.ctrlregs.K_init : Regs.ctrlregs.K + Regs.ctrlregs.K_inc;
 					Regsupdate.ctrlregs.K =Kchange ? Knew : Regs.ctrlregs.K;
-					PRINT_STATE_UPDATE("ctrlregs.K",Regs.ctrlregs.K,Regsupdate.ctrlregs.K);
 					
 					/*J update*/
 					bool Jchange = Kinit;
 					bool Jinit = (Regs.ctrlregs.J_inc>0 ? Regs.ctrlregs.J + Regs.ctrlregs.J_inc>=Regs.ctrlregs.J_thread:Regs.ctrlregs.J + Regs.ctrlregs.J_inc<=Regs.ctrlregs.J_thread);
 					int Jnew = Jinit ? Regs.ctrlregs.J_init : Regs.ctrlregs.J + Regs.ctrlregs.J_inc;
 					Regsupdate.ctrlregs.J = Jchange? Jnew:Regs.ctrlregs.J;
-					PRINT_STATE_UPDATE("ctrlregs.J",Regs.ctrlregs.J,Regsupdate.ctrlregs.J);
 
 					/*I update*/
 					bool Ichange = Jinit;
 					bool Iinit = (Regs.ctrlregs.I_inc>0 ? Regs.ctrlregs.I + Regs.ctrlregs.I_inc>=Regs.ctrlregs.I_thread:Regs.ctrlregs.I + Regs.ctrlregs.I_inc<=Regs.ctrlregs.I_thread);
 					int Inew = Iinit ? Regs.ctrlregs.I_init : Regs.ctrlregs.I + Regs.ctrlregs.I_inc;
 					Regsupdate.ctrlregs.I = Ichange ? Inew:Regs.ctrlregs.I;
-					PRINT_STATE_UPDATE("ctrlregs.I",Regs.ctrlregs.I,Regsupdate.ctrlregs.I);
 
 					/*finishreg update*/
 					Regsupdate.ctrlregs.Finish = (Regs.ctrlregs.IIcnt == Regs.ctrlregs.FinishIIcnt)&&(Regs.ctrlregs.Instcnt == Regs.ctrlregs.FinishInstcnt);
-					PRINT_STATE_UPDATE("ctrlregs.Finish",Regs.ctrlregs.Finish,Regsupdate.ctrlregs.Finish);
 					
 					/*fureg update*/
 					bool fureg_wen = furesult.valid;
 					if(fureg_wen) {Regsupdate.fureg = furesult.data;
-					PRINT_STATE_UPDATE("fureg",Regs.fureg,Regsupdate.fureg);
 					}
 
-#undef PRINT_STATE_UPDATE
-
+					/* print state update*/
+#define STATES(f)\
+					f(ctrlregs.Instcnt) f(ctrlregs.IIcnt) f(ctrlregs.Constcnt1) f(ctrlregs.Constcnt2) f(ctrlregs.Shiftconstcnt1) f(ctrlregs.Shiftconstcnt2) f(ctrlregs.K) f(ctrlregs.J)\
+					f(ctrlregs.I)	f(ctrlregs.Finish) f(fureg)
+#define PRINT_STATE_UPDATE(name)\
+					std::cout<<#name<<" : "<<Regs.name<<" -> "<<Regsupdate.name<<std::endl;
+					std::cout<<"Update state in PE:(current state-> next state)"<<endl;
+					STATES(PRINT_STATE_UPDATE)
 					std::cout<<std::endl;
+#undef PRINT_STATE_UPDATE
+#undef STATES
 
-
+					/*link data update*/
 					Src crossbarouts[4];
 					for(int i =0;i<4;i++){
 					crossbarouts[i] = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
 					}
-					/*link data update*/
 					bool linkout_wen[4];
-			  	for(int i = 0;i <4;i++){linkout_wen[i]	= needtosendout[i] &&linkinstnotskip[i];}
 					std::cout<<"Send data to Link:"<<std::endl;
-					std::cout<<"crossbaroutsN.valid:" <<crossbarouts[LINK_DIRECTION_TO_N].valid<<std::endl;
-					std::cout<<"crossbaroutsS.valid:" <<crossbarouts[LINK_DIRECTION_TO_S].valid<<std::endl;
-					std::cout<<"crossbaroutsW.valid:" <<crossbarouts[LINK_DIRECTION_TO_W].valid<<std::endl;
-					std::cout<<"crossbaroutsE.valid:" <<crossbarouts[LINK_DIRECTION_TO_E].valid<<std::endl;
+			  	for(int i = 0;i <4;i++){linkout_wen[i]	= linkneedtosendout[i] &&linkinstnotskip[i];}
 					for(int i = 0; i< 4; ++ i){
 						if(linkout_wen[i]){
+							std::cout<<"send data "<<crossbarouts[LINK_DIRECTION_TO_N].data<<" valid "<<crossbarouts[LINK_DIRECTION_TO_N].valid<<" from source"<<Inst.LinkInsts[i].Dkey<<" to link direction"<<i<<std::endl;
 							outLinks[i]->Regsupdate.data = crossbarouts[i].data;
 							outLinks[i]->Regsupdate.valid= crossbarouts[i].valid;
 						}
