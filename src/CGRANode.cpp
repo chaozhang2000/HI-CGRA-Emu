@@ -263,19 +263,21 @@ void CGRANode::CGRANodeExecOnecycle(){
 				Src fusrc1 = {0,false};
 				Src fusrc2 = {0,false};
 				/* Decode */
+				int alukey = Inst.FuInst.Fukey;
+				int src1key = Inst.FuInst.Src1key;
+				int src2key = Inst.FuInst.Src2key;
+				int linkkeys[4];
+				for(int i = 0;i<4;i++){linkkeys[i] = Inst.LinkInsts[i].Dkey;}
 				bool const1 =Inst.FuInst.Src1key == SRC_OCCUPY_FROM_CONST_MEM;
 				bool const2 =Inst.FuInst.Src2key == SRC_OCCUPY_FROM_CONST_MEM;
-				bool shiftconst1 =(Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst1;
-				bool shiftconst2 =(Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst2;
+				bool shiftconst1 =Inst.FuInst.Shiftconst1;//(Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst1;
+				bool shiftconst2 =Inst.FuInst.Shiftconst2;//(Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst2;
 				bool linkneedtosendout[4];
 			  for(int i = 0;i <4;i++){linkneedtosendout[i]	= (Inst.LinkInsts[i].Dkey !=LINK_NOT_OCCUPY && Inst.LinkInsts[i].Dkey !=LINK_OCCUPY_EMPTY);}
 				bool fuinstskip = Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.FuInst.FudelayII;
-				bool fuinstnotskip = !fuinstskip;
 				bool linkinstskip[4];
-				bool linkinstnotskip[4];
 				for(int i = 0; i<4;i++){
 					linkinstskip[i] = Regs.ctrlregs.IIcnt < Inst.LinkInsts[i].DelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.LinkInsts[i].DelayII;
-					linkinstnotskip[i] = !linkinstskip[i];
 				}
 				bool canexe;
 				canexe =(Regs.ctrlregs.Startcyclecnt >= Regs.ctrlregs.Startcyclenum);
@@ -290,9 +292,9 @@ void CGRANode::CGRANodeExecOnecycle(){
 #undef PRINT_DECODE
 #undef DECODES_SIGNALS
 
-				/*wire src1 and src2 get data and valid from linkin or other srcs */
-				fusrc1 = (this->*getsrc[Inst.FuInst.Src1key])(0);
-				fusrc2 = (this->*getsrc[Inst.FuInst.Src2key])(1);
+				/*src1 and src2 get data and valid from linkin or other srcs ,src1mux and src2mux*/
+				fusrc1 = (this->*getsrc[src1key])(0);
+				fusrc2 = (this->*getsrc[src2key])(1);
 				fusrc1.data =Inst.FuInst.Shiftconst1 ? fusrc1.data + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1]:fusrc1.data;
 				fusrc2.data =Inst.FuInst.Shiftconst2 ? fusrc2.data + ShiftconstMem2[Regs.ctrlregs.Shiftconstcnt2]:fusrc2.data;
 
@@ -305,13 +307,13 @@ void CGRANode::CGRANodeExecOnecycle(){
 					std::cout << "src1: data:" <<fusrc1.data<<" valid:"<<fusrc1.valid<< std::endl;
 					std::cout << "src2: data:" <<fusrc2.data<<" valid:"<<fusrc2.valid<< std::endl;
 					/*fu input*/
-					auto it = config_info.execLatency.find(opt_encode_name_map[Inst.FuInst.Fukey]);
+					auto it = config_info.execLatency.find(opt_encode_name_map[alukey]);
 					int latency = it != config_info.execLatency.end() ? it->second:0;
 					Opt opt;
-					opt.latency = latency; opt.key = Inst.FuInst.Fukey;opt.src1 = fusrc1; opt.src2 = fusrc2;
-					if(Inst.FuInst.Fukey != FU_EMPTY && fuinstnotskip){
+					opt.latency = latency; opt.key = alukey;opt.src1 = fusrc1; opt.src2 = fusrc2;
+					if(alukey != FU_EMPTY && (!fuinstskip)){
 									pendingopts.push_back(opt);
-					std::cout <<opt_encode_name_map[Inst.FuInst.Fukey]<<" start and will generate result "<<latency<<" cycles latter"<<std::endl;
+					std::cout <<opt_encode_name_map[alukey]<<" start and will generate result "<<latency<<" cycles latter"<<std::endl;
 					}
 					int canexenum = 0;
 					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
@@ -407,14 +409,14 @@ void CGRANode::CGRANodeExecOnecycle(){
 					/*link data update*/
 					Src crossbarouts[4];
 					for(int i =0;i<4;i++){
-					crossbarouts[i] = (this->*getsrclink[Inst.LinkInsts[i].Dkey])(0);
+					crossbarouts[i] = (this->*getsrclink[linkkeys[i]])(0);
 					}
 					bool linkout_wen[4];
 					std::cout<<"Send data to Link:"<<std::endl;
-			  	for(int i = 0;i <4;i++){linkout_wen[i]	= linkneedtosendout[i] &&linkinstnotskip[i];}
+			  	for(int i = 0;i <4;i++){linkout_wen[i]	= linkneedtosendout[i] &&(!linkinstskip[i]);}
 					for(int i = 0; i< 4; ++ i){
 						if(linkout_wen[i]){
-							std::cout<<"send data "<<crossbarouts[LINK_DIRECTION_TO_N].data<<" valid "<<crossbarouts[LINK_DIRECTION_TO_N].valid<<" from source"<<Inst.LinkInsts[i].Dkey<<" to link direction"<<i<<std::endl;
+							std::cout<<"send data "<<crossbarouts[LINK_DIRECTION_TO_N].data<<" valid "<<crossbarouts[LINK_DIRECTION_TO_N].valid<<" from source"<<linkkeys[i]<<" to link direction"<<i<<std::endl;
 							outLinks[i]->Regsupdate.data = crossbarouts[i].data;
 							outLinks[i]->Regsupdate.valid= crossbarouts[i].valid;
 						}
