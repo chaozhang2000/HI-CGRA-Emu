@@ -19,8 +19,8 @@ struct CGRANodeRegs{
 struct Opt{
 	int latency;
 	int key;
-	Src src1;
-	Src src2;
+	int src1;
+	int src2;
 };
 class CGRANode{
 
@@ -59,31 +59,31 @@ class CGRANode{
 		int *ShiftconstMem1;
 		int *ShiftconstMem2;
 
-		typedef Src(CGRANode::*getSrcPtr)(int key);
+		typedef int(CGRANode::*getSrcPtr)(int key);
 		getSrcPtr getsrc[10];
-		Src getsrcnull(int key);
-		Src getsrcfromFureg(int key);
-		Src getsrcformconstmem(int key);
-		Src getsrcfromNlink(int key);
-		Src getsrcfromSlink(int key);
-		Src getsrcfromWlink(int key);
-		Src getsrcfromElink(int key);
-		Src getsrcfromloop0reg(int key);
-		Src getsrcfromloop1reg(int key);
-		Src getsrcfromloop2reg(int key);
+		int getsrcnull(int key);
+		int getsrcfromFureg(int key);
+		int getsrcformconstmem(int key);
+		int getsrcfromNlink(int key);
+		int getsrcfromSlink(int key);
+		int getsrcfromWlink(int key);
+		int getsrcfromElink(int key);
+		int getsrcfromloop0reg(int key);
+		int getsrcfromloop1reg(int key);
+		int getsrcfromloop2reg(int key);
 
-		typedef Src(CGRANode::*fuExecPtr)(Src src1,Src src2);
+		typedef Src(CGRANode::*fuExecPtr)(int src1,int src2);
 		fuExecPtr fuopts[7];
-		Src emptyopt(Src src1, Src src2);
-		Src addopt(Src src1, Src src2);
-		Src mulopt(Src src1, Src src2);
-		Src loadopt(Src src1, Src src2);
-		Src storeopt(Src src1, Src src2);
-		Src shlopt(Src src1,Src src2);
+		Src emptyopt(int src1, int src2);
+		Src addopt(int src1, int src2);
+		Src mulopt(int src1, int src2);
+		Src loadopt(int src1, int src2);
+		Src storeopt(int src1, int src2);
+		Src shlopt(int src1,int src2);
 
 		getSrcPtr getsrclink[8];
 		Src furesult;
-		Src getsrcfromFu(int key);
+		int getsrcfromFu(int key);
 
   public:
 		DataMem* datamem;

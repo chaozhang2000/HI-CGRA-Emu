@@ -8,99 +8,66 @@
 #include <algorithm>
 
 string encode_optname_map[30];
-Src CGRANode::getsrcnull(int key){
-	Src src = {0,true};
-	return src;
+int CGRANode::getsrcnull(int key){
+	return 0;
 }
-Src CGRANode::getsrcfromFureg(int key){
-	Src src;
-	src.data = Regs.fureg;
-	src.valid = true;
-	return src;
+int CGRANode::getsrcfromFureg(int key){
+	return Regs.fureg;
 }
-Src CGRANode::getsrcformconstmem(int key){
+int CGRANode::getsrcformconstmem(int key){
 	assert(key == 0 || key == 1);
-	Src src;
-	src.data = key == 0 ? ConstMem1[Regs.ctrlregs.Constcnt1]:ConstMem2[Regs.ctrlregs.Constcnt2];
-	src.valid = true;
-	//std::cout<<"src"<<key+1<<"const = "<<src.data<<std::endl;
-	return src;
+	return key == 0 ? ConstMem1[Regs.ctrlregs.Constcnt1]:ConstMem2[Regs.ctrlregs.Constcnt2];
 }
-Src CGRANode::getsrcfromNlink(int key){
-	Src src = {0,false};
-	src = inLinks[LINK_DIRECTION_TO_N]->getSrc();
-	//std::cout<<"src"<<key+1<<"linkS_in = "<<src.data<<endl;
-	return src;
+int CGRANode::getsrcfromNlink(int key){
+	return inLinks[LINK_DIRECTION_TO_N]->getSrc();
 }	
-Src CGRANode::getsrcfromSlink(int key){
-	Src src = {0,false};
-	src = inLinks[LINK_DIRECTION_TO_S]->getSrc();
-	//std::cout<<"src"<<key+1<<"linkN_in = "<<src.data<<endl;
-	return src;
+int CGRANode::getsrcfromSlink(int key){
+	return inLinks[LINK_DIRECTION_TO_S]->getSrc();
 }
-Src CGRANode::getsrcfromWlink(int key){
-	Src src = {0,false};
-	src = inLinks[LINK_DIRECTION_TO_W]->getSrc();
-	//std::cout<<"src"<<key+1<<"linkE_in = "<<src.data<<endl;
-	return src;
+int CGRANode::getsrcfromWlink(int key){
+	return inLinks[LINK_DIRECTION_TO_W]->getSrc();
 }
-Src CGRANode::getsrcfromElink(int key){
-	Src src = {0,false};
-	src = inLinks[LINK_DIRECTION_TO_E]->getSrc();
-	//std::cout<<"src"<<key+1<<"linkW_in = "<<src.data<<endl;
-	return src;
+int CGRANode::getsrcfromElink(int key){
+	return inLinks[LINK_DIRECTION_TO_E]->getSrc();
 }
-Src CGRANode::getsrcfromloop0reg(int key){
-	//std::cout<<"src"<<key+1<<"loop0k = "<<Regs.ctrlregs.K<<endl;
-	Src src;
-	src.data = Regs.ctrlregs.K;
-	src.valid = true;
-	return src;
+int CGRANode::getsrcfromloop0reg(int key){
+	return Regs.ctrlregs.K;
 }
-Src CGRANode::getsrcfromloop1reg(int key){
-	//std::cout<<"src"<<key+1<<"loop1j = "<<Regs.ctrlregs.J<<endl;
-	Src src;
-	src.data = Regs.ctrlregs.J;
-	src.valid = true;
-	return src;
+int CGRANode::getsrcfromloop1reg(int key){
+	return Regs.ctrlregs.J;
 }
-Src CGRANode::getsrcfromloop2reg(int key){
-	//std::cout<<"src"<<key+1<<"loop2i = "<<Regs.ctrlregs.I<<endl;
-	Src src;
-	src.data = Regs.ctrlregs.I;
-	src.valid = true;
-	return src;
+int CGRANode::getsrcfromloop2reg(int key){
+	return Regs.ctrlregs.I;
 }
-Src CGRANode::getsrcfromFu(int key){
-	return furesult;
+int CGRANode::getsrcfromFu(int key){
+	return furesult.data;
 }
-Src CGRANode::emptyopt(Src src1, Src src2){
+Src CGRANode::emptyopt(int src1, int src2){
 				std::cout<<"empty opt"<<std::endl;
 				return {0,false};
 }
-Src CGRANode::addopt(Src src1, Src src2){
+Src CGRANode::addopt(int src1, int src2){
 				std::cout<<"exec add"<<std::endl;
-				return {src1.data + src2.data,src1.valid&&src2.valid};
+				return {src1 + src2,true};
 }
-Src CGRANode::mulopt(Src src1, Src src2){
+Src CGRANode::mulopt(int src1, int src2){
 				std::cout<<"exec mul"<<std::endl;
-				return {src1.data * src2.data,src1.valid&& src2.valid};
+				return {src1 * src2,true};
 }
-Src CGRANode::loadopt(Src src1, Src src2){
+Src CGRANode::loadopt(int src1, int src2){
 				assert(datamem!=NULL);
 				std::cout<<"exec load"<<std::endl;
-				if(src1.valid && src2.valid)return datamem->fureadData(src1.data);
-				else return {0,false};
+				return datamem->fureadData(src1);
 }
-Src CGRANode::storeopt(Src src1, Src src2){
+Src CGRANode::storeopt(int src1, int src2){
 				assert(datamem!=NULL);
 				std::cout<<"exec store"<<std::endl;
-				datamem->writeData(src2.data,src1.data);
-				return {0,src1.valid&&src2.valid};
+				datamem->writeData(src2,src1);
+				return {0,true};
 }
-Src CGRANode::shlopt(Src src1,Src src2){
+Src CGRANode::shlopt(int src1,int src2){
 				std::cout<<"exec shl"<<std::endl;
-				return {src1.data << src2.data,src1.valid && src2.valid};
+				return {src1 << src2,true};
 }
 #define COMMON_OPTS(f)\
 				f(mul) f(add) f(getelementptr)
@@ -260,8 +227,8 @@ void CGRANode::CGRANodeExecOnecycle(){
 
 				furesult.data = 0;
 				furesult.valid = 0;
-				Src fusrc1 = {0,false};
-				Src fusrc2 = {0,false};
+				int fusrc1 = 0;
+				int fusrc2 = 0;
 				/* Decode */
 				int alukey = Inst.FuInst.Fukey;
 				int src1key = Inst.FuInst.Src1key;
@@ -270,8 +237,8 @@ void CGRANode::CGRANodeExecOnecycle(){
 				for(int i = 0;i<4;i++){linkkeys[i] = Inst.LinkInsts[i].Dkey;}
 				bool const1 =Inst.FuInst.Src1key == SRC_OCCUPY_FROM_CONST_MEM;
 				bool const2 =Inst.FuInst.Src2key == SRC_OCCUPY_FROM_CONST_MEM;
-				bool shiftconst1 =Inst.FuInst.Shiftconst1;//(Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src1key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst1;
-				bool shiftconst2 =Inst.FuInst.Shiftconst2;//(Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP0||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1||Inst.FuInst.Src2key ==SRC_OCCUPY_FROM_LOOP1)&& Inst.FuInst.Shiftconst2;
+				bool shiftconst1 =Inst.FuInst.Shiftconst1;
+				bool shiftconst2 =Inst.FuInst.Shiftconst2;
 				bool linkneedtosendout[4];
 			  for(int i = 0;i <4;i++){linkneedtosendout[i]	= (Inst.LinkInsts[i].Dkey !=LINK_NOT_OCCUPY && Inst.LinkInsts[i].Dkey !=LINK_OCCUPY_EMPTY);}
 				bool fuinstskip = Regs.ctrlregs.IIcnt < Inst.FuInst.FudelayII || Regs.ctrlregs.IIcnt >= Regs.ctrlregs.IInum + Inst.FuInst.FudelayII;
@@ -295,8 +262,8 @@ void CGRANode::CGRANodeExecOnecycle(){
 				/*src1 and src2 get data and valid from linkin or other srcs ,src1mux and src2mux*/
 				fusrc1 = (this->*getsrc[src1key])(0);
 				fusrc2 = (this->*getsrc[src2key])(1);
-				fusrc1.data =Inst.FuInst.Shiftconst1 ? fusrc1.data + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1]:fusrc1.data;
-				fusrc2.data =Inst.FuInst.Shiftconst2 ? fusrc2.data + ShiftconstMem2[Regs.ctrlregs.Shiftconstcnt2]:fusrc2.data;
+				fusrc1 =Inst.FuInst.Shiftconst1 ? fusrc1 + ShiftconstMem1[Regs.ctrlregs.Shiftconstcnt1]:fusrc1;
+				fusrc2 =Inst.FuInst.Shiftconst2 ? fusrc2 + ShiftconstMem2[Regs.ctrlregs.Shiftconstcnt2]:fusrc2;
 
 				/*start cyclecnt update*/
 				Regsupdate.ctrlregs.Startcyclecnt= (Regs.ctrlregs.Startcyclecnt < Regs.ctrlregs.Startcyclenum)?Regs.ctrlregs.Startcyclecnt + 1:Regs.ctrlregs.Startcyclecnt;
@@ -304,8 +271,8 @@ void CGRANode::CGRANodeExecOnecycle(){
 				/*exe update the state in CGRANode and Link*/
 				if(canexe){
 					std::cout << "Fu:" << std::endl;
-					std::cout << "src1: data:" <<fusrc1.data<<" valid:"<<fusrc1.valid<< std::endl;
-					std::cout << "src2: data:" <<fusrc2.data<<" valid:"<<fusrc2.valid<< std::endl;
+					std::cout << "src1: data:" <<fusrc1<< std::endl;
+					std::cout << "src2: data:" <<fusrc2<< std::endl;
 					/*fu input*/
 					auto it = config_info.execLatency.find(opt_encode_name_map[alukey]);
 					int latency = it != config_info.execLatency.end() ? it->second:0;
@@ -323,10 +290,9 @@ void CGRANode::CGRANodeExecOnecycle(){
 					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
 						if((*it).latency == 0){
 							int fukey =(*it).key ;
-							Src src1 = (*it).src1;
-							Src src2 = (*it).src2;
+							int src1 = (*it).src1;
+							int src2 = (*it).src2;
 				  		furesult = (this->*fuopts[fukey])(src1,src2);
-				  		furesult.valid = (src1.valid && src2.valid); //&& fuinstnotskip;
 							std::cout <<opt_encode_name_map[fukey]<<" generate result."<<std::endl;
 							std::cout<<"furesult.data = "<<furesult.data<<" furesult.valid = "<<furesult.valid<<std::endl;
 						}
@@ -407,7 +373,7 @@ void CGRANode::CGRANodeExecOnecycle(){
 #undef STATES
 
 					/*link data update*/
-					Src crossbarouts[4];
+					int crossbarouts[4];
 					for(int i =0;i<4;i++){
 					crossbarouts[i] = (this->*getsrclink[linkkeys[i]])(0);
 					}
@@ -416,9 +382,8 @@ void CGRANode::CGRANodeExecOnecycle(){
 			  	for(int i = 0;i <4;i++){linkout_wen[i]	= linkneedtosendout[i] &&(!linkinstskip[i]);}
 					for(int i = 0; i< 4; ++ i){
 						if(linkout_wen[i]){
-							std::cout<<"send data "<<crossbarouts[LINK_DIRECTION_TO_N].data<<" valid "<<crossbarouts[LINK_DIRECTION_TO_N].valid<<" from source"<<linkkeys[i]<<" to link direction"<<i<<std::endl;
-							outLinks[i]->Regsupdate.data = crossbarouts[i].data;
-							outLinks[i]->Regsupdate.valid= crossbarouts[i].valid;
+							std::cout<<"send data "<<crossbarouts[LINK_DIRECTION_TO_N]<<" from source"<<linkkeys[i]<<" to link direction"<<i<<std::endl;
+							outLinks[i]->Regsupdate.data = crossbarouts[i];
 						}
 					}
 				}
@@ -433,10 +398,9 @@ void CGRANode::CGRANodefinish_pendingopts(){
 					for(auto it = pendingopts.begin();it != pendingopts.end();++it){
 						if((*it).latency == 0){
 							int fukey =(*it).key ;
-							Src src1 = (*it).src1;
-							Src src2 = (*it).src2;
+							int src1 = (*it).src1;
+							int src2 = (*it).src2;
 				  		furesult = (this->*fuopts[fukey])(src1,src2);
-				  		furesult.valid = (src1.valid && src2.valid); //&& fuinstnotskip;
 						}
 					}
 					pendingopts.erase(remove_if(pendingopts.begin(),pendingopts.end(),[]( Opt t){return t.latency == 0;}),pendingopts.end());

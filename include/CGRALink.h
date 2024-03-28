@@ -11,7 +11,6 @@ enum {	LINK_DIRECTION_TO_N,
 
 struct CGRALinkRegs{
 	int data;
-	bool valid;
 };
 class CGRALink
 {
@@ -36,7 +35,7 @@ class CGRALink
 		CGRALinkRegs Regsupdate;
 		void CGRALinkReset();
 		void CGRALinkUpdate();
-		Src getSrc();
+		int getSrc();
 		/**The constructor function of class CGRALink
 		 * this function init CGRANode's ID according the params,other var is init by default value.
 		 * @param t_linkId : the id of the CGRALink
