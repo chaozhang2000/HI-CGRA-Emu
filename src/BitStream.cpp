@@ -51,7 +51,7 @@ bool DumpBitStream(BitStreamInfo* bitstream,std::string& filename){
     // Printing the bitstream
   	OUTS("\nBitstream information",ANSI_FG_BLUE);
 		OUTS("==================================",ANSI_FG_CYAN); 
-    for (int i = 0; i < 16; ++i) {
+    for (int i = 0; i <config_info.rows * config_info.cols; ++i) {
 				OUTS("BitStreamInfoPE " << i << ":",ANSI_FG_CYAN);
         // Printing CGRAInstruction bitstream
         for (int j = 0; j < config_info.instmemsize; ++j) {
