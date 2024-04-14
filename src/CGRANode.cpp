@@ -382,7 +382,7 @@ void CGRANode::CGRANodeExecOnecycle(){
 			  	for(int i = 0;i <4;i++){linkout_wen[i]	= linkneedtosendout[i] &&(!linkinstskip[i]);}
 					for(int i = 0; i< 4; ++ i){
 						if(linkout_wen[i]){
-							std::cout<<"send data "<<crossbarouts[LINK_DIRECTION_TO_N]<<" from source"<<linkkeys[i]<<" to link direction"<<i<<std::endl;
+							std::cout<<"send data "<<crossbarouts[i]<<" from source"<<linkkeys[i]<<" to link direction"<<i<<std::endl;
 							outLinks[i]->Regsupdate.data = crossbarouts[i];
 						}
 					}
