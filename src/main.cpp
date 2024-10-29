@@ -49,6 +49,7 @@ int main(int argc,char* argv[]){
 	std::cout<<"Simulate cycle = "<<cycle<<std::endl;
 	printresult(cgra);
 	checkresult(cgra);
+	std::cout<<"Simulate cycle = "<<cycle<<std::endl;
 
 	delete cgra;
 	deleteBitStream(bitstream);
