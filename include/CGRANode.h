@@ -73,13 +73,18 @@ class CGRANode{
 		int getsrcfromloop2reg(int key);
 
 		typedef Src(CGRANode::*fuExecPtr)(int src1,int src2);
-		fuExecPtr fuopts[7];
+		fuExecPtr fuopts[12];
 		Src emptyopt(int src1, int src2);
 		Src addopt(int src1, int src2);
 		Src mulopt(int src1, int src2);
 		Src loadopt(int src1, int src2);
 		Src storeopt(int src1, int src2);
 		Src shlopt(int src1,int src2);
+		Src oropt(int src1,int src2);
+		Src sextopt(int src1,int src2);
+		Src andopt(int src1,int src2);
+		Src subopt(int src1,int src2);
+		Src ashropt(int src1,int src2);
 
 		getSrcPtr getsrclink[8];
 		Src furesult;

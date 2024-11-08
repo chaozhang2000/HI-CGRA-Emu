@@ -22,7 +22,7 @@ enum {  LINK_NOT_OCCUPY,
 				LINK_OCCUPY_FROM_FU,
 				LINK_OCCUPY_FROM_FUREG};
 #define OPTS(f) \
-  f(mul) f(add) f(getelementptr) f(load) f(store) f(shl) 
+  f(mul) f(add) f(getelementptr) f(load) f(store) f(shl) f(or) f(sext) f(and) f(sub) f(ashr)
 #define _OPT_NAME(k) FU_##k,
 
 enum {  FU_EMPTY = 0,

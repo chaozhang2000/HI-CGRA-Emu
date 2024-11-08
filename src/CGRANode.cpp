@@ -69,8 +69,28 @@ Src CGRANode::shlopt(int src1,int src2){
 				std::cout<<"exec shl"<<std::endl;
 				return {src1 << src2,true};
 }
+Src CGRANode::oropt(int src1,int src2){
+				std::cout<<"exec or"<<std::endl;
+				return {src1 | src2,true};
+}
+Src CGRANode::sextopt(int src1,int src2){
+				std::cout<<"exec sext"<<std::endl;
+				return {src1,true};
+}
+Src CGRANode::andopt(int src1,int src2){
+				std::cout<<"exec and"<<std::endl;
+				return {src1 & src2,true};
+}
+Src CGRANode::subopt(int src1,int src2){
+				std::cout<<"exec sub"<<std::endl;
+				return {src1 - src2,true};
+}
+Src CGRANode::ashropt(int src1,int src2){
+				std::cout<<"exec ashr"<<std::endl;
+				return {src1 >> src2,true};
+}
 #define COMMON_OPTS(f)\
-				f(mul) f(add) f(getelementptr)
+				f(mul) f(add) f(getelementptr) f(shl) f(or) f(sext) f(and) f(sub) f(ashr)
 #define LOAD_STORE_OPTS(f)\
 				f(load) f(store)
 #define M_SUPPORTOPTS_INSERT(k) m_supportOpts.insert(#k);
@@ -107,6 +127,11 @@ fuopts[FU_getelementptr] = &CGRANode::addopt;
 fuopts[FU_load] = &CGRANode::loadopt;
 fuopts[FU_store] = &CGRANode::storeopt;
 fuopts[FU_shl] = &CGRANode::shlopt;
+fuopts[FU_or] = &CGRANode::oropt;
+fuopts[FU_sext] = &CGRANode::sextopt;
+fuopts[FU_and] = &CGRANode::andopt;
+fuopts[FU_sub] = &CGRANode::subopt;
+fuopts[FU_ashr] = &CGRANode::ashropt;
 
 getsrclink[LINK_NOT_OCCUPY] = &CGRANode::getsrcnull;
 getsrclink[LINK_OCCUPY_EMPTY] = &CGRANode::getsrcnull;
@@ -292,7 +317,7 @@ void CGRANode::CGRANodeExecOnecycle(){
 							int fukey =(*it).key ;
 							int src1 = (*it).src1;
 							int src2 = (*it).src2;
-				  		furesult = (this->*fuopts[fukey])(src1,src2);
+							furesult = (this->*fuopts[fukey])(src1,src2);
 							std::cout <<opt_encode_name_map[fukey]<<" generate result."<<std::endl;
 							std::cout<<"furesult.data = "<<furesult.data<<" furesult.valid = "<<furesult.valid<<std::endl;
 						}
