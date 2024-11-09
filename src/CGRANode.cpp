@@ -361,19 +361,19 @@ void CGRANode::CGRANodeExecOnecycle(){
 
 					/*K update*/
 					bool Kchange = Regs.ctrlregs.Instcnt == Regs.ctrlregs.Instnum -1;
-					bool Kinit = (Regs.ctrlregs.K_inc>0 ? Regs.ctrlregs.K + Regs.ctrlregs.K_inc>=Regs.ctrlregs.K_thread:Regs.ctrlregs.K + Regs.ctrlregs.K_inc<=Regs.ctrlregs.K_thread);
+					bool Kinit = (Regs.ctrlregs.K_inc>0 ? Regs.ctrlregs.K + Regs.ctrlregs.K_inc>=Regs.ctrlregs.K_thread:Regs.ctrlregs.K + Regs.ctrlregs.K_inc<=Regs.ctrlregs.K_thread)& Kchange;
 					int Knew = Kinit ? Regs.ctrlregs.K_init : Regs.ctrlregs.K + Regs.ctrlregs.K_inc;
 					Regsupdate.ctrlregs.K =Kchange ? Knew : Regs.ctrlregs.K;
 					
 					/*J update*/
 					bool Jchange = Kinit;
-					bool Jinit = (Regs.ctrlregs.J_inc>0 ? Regs.ctrlregs.J + Regs.ctrlregs.J_inc>=Regs.ctrlregs.J_thread:Regs.ctrlregs.J + Regs.ctrlregs.J_inc<=Regs.ctrlregs.J_thread);
+					bool Jinit = (Regs.ctrlregs.J_inc>0 ? Regs.ctrlregs.J + Regs.ctrlregs.J_inc>=Regs.ctrlregs.J_thread:Regs.ctrlregs.J + Regs.ctrlregs.J_inc<=Regs.ctrlregs.J_thread)&Jchange;
 					int Jnew = Jinit ? Regs.ctrlregs.J_init : Regs.ctrlregs.J + Regs.ctrlregs.J_inc;
 					Regsupdate.ctrlregs.J = Jchange? Jnew:Regs.ctrlregs.J;
 
 					/*I update*/
 					bool Ichange = Jinit;
-					bool Iinit = (Regs.ctrlregs.I_inc>0 ? Regs.ctrlregs.I + Regs.ctrlregs.I_inc>=Regs.ctrlregs.I_thread:Regs.ctrlregs.I + Regs.ctrlregs.I_inc<=Regs.ctrlregs.I_thread);
+					bool Iinit = (Regs.ctrlregs.I_inc>0 ? Regs.ctrlregs.I + Regs.ctrlregs.I_inc>=Regs.ctrlregs.I_thread:Regs.ctrlregs.I + Regs.ctrlregs.I_inc<=Regs.ctrlregs.I_thread)&Ichange;
 					int Inew = Iinit ? Regs.ctrlregs.I_init : Regs.ctrlregs.I + Regs.ctrlregs.I_inc;
 					Regsupdate.ctrlregs.I = Ichange ? Inew:Regs.ctrlregs.I;
 
